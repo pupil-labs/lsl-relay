@@ -1,7 +1,11 @@
-2.1.1
-#####
+2.2.0 (WIP)
+###########
 - Add command line tool for lsl-to-cloud time alignment and vice versa
 - Change the events sent for time alignment to include a unique session id
+- Add command line tool for monitoring sampling rates in real time
+- Add example on how to apply estimated time alignments
+- Update module skeleton
+- Update pre-commit config
 
 2.1.0
 #####
