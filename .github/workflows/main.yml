@@ -16,7 +16,7 @@ jobs:
           - 3.8
           - 3.9
           - "3.10"
-          - "3.11"
+          # - "3.11"  # TODO: Wait for py311 pyav release
         platform:
           - ubuntu-latest
           - macos-latest
