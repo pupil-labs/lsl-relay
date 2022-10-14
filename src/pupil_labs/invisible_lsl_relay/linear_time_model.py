@@ -30,17 +30,17 @@ class TimeAlignmentModels:
 
     def to_json(self, path: Union[None, str, Path] = None) -> Optional[str]:
         mapping_parameters = {
-            'cloud_to_lsl': {
-                'intercept': self.cloud_to_lsl.intercept_,
-                'slope': self.cloud_to_lsl.coef_[0],
+            "cloud_to_lsl": {
+                "intercept": self.cloud_to_lsl.intercept_,
+                "slope": self.cloud_to_lsl.coef_[0],
             },
-            'lsl_to_cloud': {
-                'intercept': self.lsl_to_cloud.intercept_,
-                'slope': self.lsl_to_cloud.coef_[0],
+            "lsl_to_cloud": {
+                "intercept": self.lsl_to_cloud.intercept_,
+                "slope": self.lsl_to_cloud.coef_[0],
             },
-            'info': {
-                'model_type': type(self.cloud_to_lsl).__name__,
-                'version': self._version,
+            "info": {
+                "model_type": type(self.cloud_to_lsl).__name__,
+                "version": self._version,
             },
         }
         serialized = json.dumps(mapping_parameters, indent=4)
@@ -67,8 +67,8 @@ class TimeAlignmentModels:
         params: ModelParameters,
     ) -> linear_model.LinearRegression:
         model = linear_model.LinearRegression()
-        model.intercept_ = params['intercept']
-        model.coef_ = np.array([params['slope']])
+        model.intercept_ = params["intercept"]
+        model.coef_ = np.array([params["slope"]])
         return model
 
 
@@ -76,7 +76,7 @@ def perform_time_alignment(
     lsl_event_data: pd.DataFrame, cloud_event_data: pd.DataFrame, timestamp_label: str
 ) -> TimeAlignmentModels:
 
-    cloud_event_data[timestamp_label] = cloud_event_data['timestamp [ns]'] * 1e-9
+    cloud_event_data[timestamp_label] = cloud_event_data["timestamp [ns]"] * 1e-9
 
     cloud_to_lsl = _linear_time_mapper(
         cloud_event_data[[timestamp_label]], lsl_event_data[timestamp_label]

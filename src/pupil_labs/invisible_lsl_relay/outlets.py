@@ -56,11 +56,11 @@ class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
         PupilInvisibleOutlet.__init__(
             self,
             channel_func=pi_gaze_channels,
-            outlet_type='Gaze',
+            outlet_type="Gaze",
             outlet_format=lsl.cf_double64,
-            timestamp_query=pi_extract_from_sample('timestamp_unix_seconds'),
+            timestamp_query=pi_extract_from_sample("timestamp_unix_seconds"),
             outlet_name_prefix=outlet_prefix,
-            outlet_uuid=f'{device_id}_Gaze',
+            outlet_uuid=f"{device_id}_Gaze",
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
                 world_camera_serial=world_camera_serial,
@@ -76,11 +76,11 @@ class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
         PupilInvisibleOutlet.__init__(
             self,
             channel_func=pi_event_channels,
-            outlet_type='Event',
+            outlet_type="Event",
             outlet_format=lsl.cf_string,
-            timestamp_query=pi_extract_from_sample('timestamp_unix_seconds'),
+            timestamp_query=pi_extract_from_sample("timestamp_unix_seconds"),
             outlet_name_prefix=outlet_prefix,
-            outlet_uuid=f'{device_id}_Event',
+            outlet_uuid=f"{device_id}_Event",
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
                 world_camera_serial=world_camera_serial,
@@ -139,13 +139,13 @@ def compose_acquisition_info(
     version,
     world_camera_serial,
     session_id,
-    manufacturer='Pupil Labs',
-    model='Pupil Invisible',
+    manufacturer="Pupil Labs",
+    model="Pupil Invisible",
 ):
     return {
-        'manufacturer': manufacturer,
-        'model': model,
-        'world_camera_serial': world_camera_serial,
-        'pupil_invisible_lsl_relay_version': version,
+        "manufacturer": manufacturer,
+        "model": model,
+        "world_camera_serial": world_camera_serial,
+        "pupil_invisible_lsl_relay_version": version,
         "session_id": str(session_id),
     }

@@ -13,27 +13,27 @@ from .cli import logger_setup
 from .linear_time_model import perform_time_alignment
 
 logger = logging.getLogger(__name__)
-event_column_name = 'name'
-event_column_timestamp = 'timestamp [s]'
+event_column_name = "name"
+event_column_timestamp = "timestamp [s]"
 
 
 @click.command()
 @click.argument(
-    'path_to_xdf',
+    "path_to_xdf",
     nargs=1,
     type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
 )
 @click.argument(
-    'paths_to_exports',
+    "paths_to_exports",
     nargs=-1,
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
 )
 def main(path_to_xdf: Path, paths_to_exports: Collection[Path]):
     # set the logging
-    logger_setup('./time_sync_posthoc.log')
+    logger_setup("./time_sync_posthoc.log")
 
     if len(paths_to_exports) == 0:
-        logger.info('No paths to exports provided. Looking inside current directory.')
+        logger.info("No paths to exports provided. Looking inside current directory.")
         paths_to_exports = (Path(),)
 
     align_and_save_data(path_to_xdf, paths_to_exports)
@@ -66,11 +66,11 @@ def align_and_save_data(path_to_xdf: Path, paths_to_cloud: Iterable[Path]):
 def load_session_id_to_xdf_event_mapping(path_to_xdf: Path) -> Dict[str, pd.DataFrame]:
 
     mapping: Dict[str, pd.DataFrame] = {}
-    data, _ = pyxdf.load_xdf(path_to_xdf, select_streams=[{'type': 'Event'}])
+    data, _ = pyxdf.load_xdf(path_to_xdf, select_streams=[{"type": "Event"}])
 
     for x in data:
         try:
-            session_id: str = x['info']['desc'][0]['acquisition'][0]['session_id'][0]
+            session_id: str = x["info"]["desc"][0]["acquisition"][0]["session_id"][0]
             mapping[session_id] = _xdf_events_to_dataframe(x)
         except KeyError:
             logger.debug(f"Skipping non-Pupil-Invisible stream {x['info']['desc']}")
@@ -154,11 +154,11 @@ def _xdf_events_to_dataframe(
 ):
     return pd.DataFrame(
         {
-            label_data: [name[0] for name in event_stream['time_series']],
-            label_time: event_stream['time_stamps'],
+            label_data: [name[0] for name in event_stream["time_series"]],
+            label_time: event_stream["time_stamps"],
         }
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

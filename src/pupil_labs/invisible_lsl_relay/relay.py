@@ -48,7 +48,7 @@ class Relay:
                 ):
                     await self.gaze_sample_queue.put(gaze)
             else:
-                logger.debug('The gaze sensor was not yet identified.')
+                logger.debug("The gaze sensor was not yet identified.")
                 await asyncio.sleep(1)
 
     async def publish_gaze_sample(self, timeout):
@@ -62,7 +62,7 @@ class Relay:
             except asyncio.TimeoutError:
                 missing_sample_duration += timeout
                 logger.warning(
-                    'No gaze sample was received for %i seconds.',
+                    "No gaze sample was received for %i seconds.",
                     missing_sample_duration,
                 )
 
@@ -73,14 +73,14 @@ class Relay:
 
     async def start_receiving_task(self):
         if self.receiving_task:
-            logger.debug('Tried to set a new receiving task, but the task is running.')
+            logger.debug("Tried to set a new receiving task, but the task is running.")
             return
         self.receiving_task = asyncio.create_task(self.receive_gaze_sample())
 
     async def start_publishing_gaze(self):
         if self.publishing_gaze_task:
             logger.debug(
-                'Tried to set a new gaze publishing task, but the task is running.'
+                "Tried to set a new gaze publishing task, but the task is running."
             )
             return
         self.publishing_gaze_task = asyncio.create_task(self.publish_gaze_sample(10))
@@ -88,7 +88,7 @@ class Relay:
     async def start_publishing_event(self):
         if self.publishing_event_task:
             logger.debug(
-                'Tried to set new event publishing task, but the task is running.'
+                "Tried to set new event publishing task, but the task is running."
             )
             return
         self.publishing_event_task = asyncio.create_task(
@@ -132,7 +132,7 @@ class DataReceiver:
 
     async def on_update(self, component):
         if isinstance(component, Sensor):
-            if component.sensor == 'gaze' and component.conn_type == 'DIRECT':
+            if component.sensor == "gaze" and component.conn_type == "DIRECT":
                 self.gaze_sensor_url = component.url
         elif isinstance(component, Event):
             adapted_event = EventAdapter(component)
@@ -174,11 +174,11 @@ async def send_events_in_interval(device_ip, device_port, session_id, sec=60):
     n_events_sent = 0
     while True:
         await send_timesync_event(
-            device_ip, device_port, f'lsl.time_sync.{session_id}.{n_events_sent}'
+            device_ip, device_port, f"lsl.time_sync.{session_id}.{n_events_sent}"
         )
         await asyncio.sleep(sec)
         n_events_sent += 1
-        logger.debug(f'sent time synchronization event no {n_events_sent}')
+        logger.debug(f"sent time synchronization event no {n_events_sent}")
 
 
 async def send_timesync_event(device_ip, device_port, message: str):

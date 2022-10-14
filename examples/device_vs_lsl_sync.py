@@ -35,7 +35,7 @@ for path, df in lsl_time_dfs.items():
     df["time [s]"] = df["timestamp [ns]"] * 1e-9
     df["time"] = models.cloud_to_lsl.predict(df[["time [s]"]].values)
     print(
-        f'{path.stem:40s}',
+        f"{path.stem:40s}",
         f'{df["timestamp [ns]"].max()-df["timestamp [ns]"].min():_}',
         f'{df["time [s]"].max() - df["time [s]"].min()}',
         f'{df["time"].max() - df["time"].min()}',

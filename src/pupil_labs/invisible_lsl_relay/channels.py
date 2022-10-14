@@ -12,8 +12,8 @@ class PiChannel:
 def pi_event_channels():
     return [
         PiChannel(
-            sample_query=pi_extract_from_sample('name'),
-            channel_information_dict={'label': "Event", 'format': "string"},
+            sample_query=pi_extract_from_sample("name"),
+            channel_information_dict={"label": "Event", "format": "string"},
         )
     ]
 
@@ -26,11 +26,11 @@ def pi_gaze_channels():
             PiChannel(
                 sample_query=pi_extract_gaze_query(i),
                 channel_information_dict={
-                    'label': "xy"[i],
-                    'eye': "both",
-                    'metatype': "Screen" + "XY"[i],
-                    'unit': "pixels",
-                    'coordinate_system': "world",
+                    "label": "xy"[i],
+                    "eye": "both",
+                    "metatype": "Screen" + "XY"[i],
+                    "unit": "pixels",
+                    "coordinate_system": "world",
                 },
             )
             for i in range(2)

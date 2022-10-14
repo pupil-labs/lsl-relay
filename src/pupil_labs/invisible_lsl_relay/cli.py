@@ -42,10 +42,10 @@ async def main_async(
         await adapter.relay_receiver_to_publisher(time_sync_interval)
     except TimeoutError:
         logger.error(
-            'Make sure your device is connected to the same network.', exc_info=True
+            "Make sure your device is connected to the same network.", exc_info=True
         )
     finally:
-        logger.info('The LSL stream was closed.')
+        logger.info("The LSL stream was closed.")
 
 
 class DeviceDiscoverer:
@@ -75,15 +75,15 @@ class DeviceDiscoverer:
 
 def get_user_defined_device(device_address):
     try:
-        address, port = device_address.split(':')
+        address, port = device_address.split(":")
         port = int(port)
         if address == "":
             raise ValueError("Empty address")
         return address, port
     except ValueError as exc:
         raise ValueError(
-            'Device address could not be parsed in IP and port!\n '
-            'Please provide the address in the format IP:port'
+            "Device address could not be parsed in IP and port!\n "
+            "Please provide the address in the format IP:port"
         ) from exc
 
 
@@ -93,21 +93,21 @@ async def get_device_info_for_outlet(device_ip, device_port):
             status = await asyncio.wait_for(device.get_status(), 10)
         except asyncio.TimeoutError as exc:
             logger.error(
-                'This ip address was not found in the network. '
-                'Please check for typos and make sure the device '
-                'is connected to the same network.'
+                "This ip address was not found in the network. "
+                "Please check for typos and make sure the device "
+                "is connected to the same network."
             )
             raise exc
         if not status.hardware.world_camera_serial:
-            logger.warning('The world camera is not connected.')
-        world_camera_serial = status.hardware.world_camera_serial or 'default'
+            logger.warning("The world camera is not connected.")
+        world_camera_serial = status.hardware.world_camera_serial or "default"
         return status.phone.device_id, world_camera_serial
 
 
 async def input_async():
     # based on https://gist.github.com/delivrance/675a4295ce7dc70f0ce0b164fcdbd798?
     # permalink_comment_id=3590322#gistcomment-3590322
-    with concurrent.futures.ThreadPoolExecutor(1, 'AsyncInput') as executor:
+    with concurrent.futures.ThreadPoolExecutor(1, "AsyncInput") as executor:
         user_input = await asyncio.get_event_loop().run_in_executor(
             executor, input, ">>>"
         )
@@ -122,7 +122,7 @@ def evaluate_user_input(user_input, device_list):
         logger.debug("Reloading the device list.")
         return None
     except IndexError:
-        print('Please choose an index from the list!')
+        print("Please choose an index from the list!")
         return None
 
 
@@ -162,11 +162,11 @@ def logger_setup(file_name, debug_level=logging.DEBUG):
     logging.basicConfig(
         level=debug_level,
         filename=file_name,
-        format='%(asctime)s:%(name)s:%(levelname)s:%(message)s',
+        format="%(asctime)s:%(name)s:%(levelname)s:%(message)s",
     )
     # set up console logging
     stream_handler = RichHandler(level="INFO")
-    formatter = logging.Formatter('%(message)s')
+    formatter = logging.Formatter("%(message)s")
     stream_handler.setFormatter(formatter)
     logging.getLogger().addHandler(stream_handler)
 
