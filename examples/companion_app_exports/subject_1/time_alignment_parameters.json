@@ -1,0 +1,14 @@
+{
+    "cloud_to_lsl": {
+        "intercept": -1657137430.0848174,
+        "slope": 1.000021399510087
+    },
+    "lsl_to_cloud": {
+        "intercept": 1657101968.9145195,
+        "slope": 0.9999786009468196
+    },
+    "info": {
+        "model_type": "LinearRegression",
+        "version": 1
+    }
+}
