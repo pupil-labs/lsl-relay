@@ -1,13 +1,14 @@
 :tocdepth: 3
 
 ************************************************************
-Preforming accurate time synchronization between two devices
+Performing accurate time synchronization between two devices
 ************************************************************
 You can use lsl to synchronize two Pupil Invisible Devices.
 
 
 Description of the Choreography
 ===============================
+
 We placed two Pupil Invisible Glasses in front of a light source, the eye cameras facing towards the light.
 The scene cameras were detached from the glasses and the light source was switched off during setup. The Companion
 Devices were set up such that both would upload the recorded data to the same Workspace.
@@ -30,3 +31,53 @@ and off four times. This created a simultaneous signal recorded by the Eye Camer
 
 After that, we stopped all recordings in the inverse order (first in the companion app, then in the LabRecorder) and
 stopped the lsl relay.
+
+Comparing NTP and LSL time sync
+===============================
+
+We used the :ref:`lsl_relay_time_alignment` tool to calculate the time alignments
+between the two Companion devices and the computer running the LSL relay.
+
+.. collapse:: Time Alignment Parameters - Subject 1
+
+   .. literalinclude:: ../../examples/companion_app_exports/subject_1/time_alignment_parameters.json
+      :language: json
+      :linenos:
+
+.. collapse:: Time Alignment Parameters - Subject 2
+
+   .. literalinclude:: ../../examples/companion_app_exports/subject_2/time_alignment_parameters.json
+      :language: json
+      :linenos:
+
+Then we extracted the illuminance for each eye video frame
+
+.. collapse:: Illuminance Extraction Script
+
+   .. literalinclude:: ../../tools/extract_eye_video_illuminance.py
+      :language: python
+      :linenos:
+
+.. collapse:: Extracted Illuminance - Excerpt Subject 1 - Left Eye Video
+
+   .. literalinclude:: ../../examples/companion_app_exports/subject_1/PI left v1 ps1.illuminance.csv
+      :language: python
+      :linenos:
+      :lines: 1-10
+
+With the script below, we load the time alignment configurations, apply them on the
+extracted illuminance timestamps, and plot the illuminance for both recordings over
+original and aligned timestamps.
+
+.. collapse:: Script to Apply and Plot Time Alignment
+
+   .. literalinclude:: ../../examples/device_vs_lsl_sync.py
+      :language: python
+      :linenos:
+
+The resulting plot demonstrates the improved time sync when using the LSL-aligned
+timestamps.
+
+.. image:: ../../examples/illuminance_over_time.png
+   :width: 800
+   :alt: Illuminance over time

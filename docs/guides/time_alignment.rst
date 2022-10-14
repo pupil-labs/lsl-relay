@@ -47,6 +47,8 @@ Setup
    argument.
 
 
+.. _lsl_relay_time_alignment:
+
 Start the post-hoc time alignment
 =================================
 The time alignment is started by executing::

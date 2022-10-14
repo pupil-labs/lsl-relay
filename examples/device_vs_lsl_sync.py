@@ -9,7 +9,7 @@ from rich.traceback import install
 from pupil_labs.invisible_lsl_relay.linear_time_model import TimeAlignmentModels
 
 install()
-sns.set()
+sns.set(font_scale=1.5)
 
 illuminance_files = sorted(Path("./companion_app_exports").rglob("*.illuminance.csv"))
 companion_device_dfs = {f: pd.read_csv(f) for f in illuminance_files}
@@ -67,4 +67,9 @@ fg = sns.relplot(
     aspect=1,
     facet_kws=dict(sharex=False),
 )
-fg.savefig("illuminance_over_time.png", dpi=120)
+fg.set_titles(template="{row_var} =\n{row_name}\n—\n{col_var} = {col_name}")
+fg.tight_layout()
+
+output_path = Path("illuminance_over_time.png").resolve()
+print(f"Saving figure to {output_path}")
+fg.savefig(output_path, dpi=120)

@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
+import subprocess
+
 try:
     from importlib.metadata import version as import_version
 except ImportError:
     from importlib_metadata import version as import_version
 
-extensions = ["sphinx.ext.autodoc", "jaraco.packaging.sphinx", "rst.linker"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "jaraco.packaging.sphinx",
+    "rst.linker",
+    "sphinx_toolbox.collapse",
+]
 
 master_doc = "index"
 
@@ -44,3 +51,8 @@ autosummary_generate = True
 release = import_version("pupil_invisible_lsl_relay")
 # for example take major/minor
 version = ".".join(release.split(".")[:2])
+
+output = subprocess.check_output(
+    ["python", "device_vs_lsl_sync.py"], cwd="../examples/"
+)
+print(output.decode())
