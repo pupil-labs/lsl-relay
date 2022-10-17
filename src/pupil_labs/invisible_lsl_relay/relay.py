@@ -160,6 +160,15 @@ class DataReceiver:
             await self.notifier.receive_updates_start()
 
     async def estimate_clock_offset(self):
+        """Estimate the Companion-Device-to-Relay clock offset.
+
+        Uses the :py:mod:`Pupil Labs Time Echo Protocol
+        <pupil_labs.realtime_api.time_echo>` to measure the clock offset between the
+        Companion Device and the relay. The offset is used to transform incoming gaze
+        and event timestamps from Companion to relay time domain. If the Companion app
+        version does not support the time echo protocol or the clock offset estimation
+        fails, the relay will fall back to NTP-based time sync.
+        """
         async with Device(self.device_ip, self.device_port) as device:
             status = await device.get_status()
 

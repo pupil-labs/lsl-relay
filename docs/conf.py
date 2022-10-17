@@ -43,6 +43,10 @@ nitpicky = True
 extensions += ["sphinx.ext.intersphinx"]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "pupil_labs.realtime_api": (
+        "https://pupil-labs-realtime-api.readthedocs.io/en/stable/",
+        None,
+    ),
 }
 
 html_theme = "furo"
