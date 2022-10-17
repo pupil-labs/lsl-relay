@@ -5,10 +5,13 @@ from typing import List, NoReturn, Optional, Union
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
 from pupil_labs.realtime_api.models import Component, Event, Sensor
+from pupil_labs.realtime_api.streaming import GazeData
+from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
 from pupil_labs.invisible_lsl_relay import outlets
 
 logger = logging.getLogger(__name__)
+logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")
 
 
 class Relay:
@@ -37,7 +40,7 @@ class Relay:
             world_camera_serial=world_camera_serial,
             session_id=self.session_id,
         )
-        self.gaze_sample_queue = asyncio.Queue()
+        self.gaze_sample_queue: asyncio.Queue[GazeAdapter] = asyncio.Queue()
         self.publishing_gaze_task = None
         self.publishing_event_task = None
         self.receiving_task = None
@@ -49,7 +52,12 @@ class Relay:
                 async for gaze in receive_gaze_data(
                     self.receiver.gaze_sensor_url, run_loop=True, log_level=30
                 ):
-                    await self.gaze_sample_queue.put(gaze)
+                    if isinstance(gaze, GazeData):
+                        await self.gaze_sample_queue.put(
+                            GazeAdapter(gaze, self.receiver.clock_offset_ns)
+                        )
+                    else:
+                        logger.warning(f"Dropping unknown gaze data type: {gaze}")
             else:
                 logger.debug("The gaze sensor was not yet identified.")
                 await asyncio.sleep(1)
@@ -136,13 +144,14 @@ class DataReceiver:
         self.notifier: Optional[StatusUpdateNotifier] = None
         self.gaze_sensor_url: Optional[str] = None
         self.event_queue: asyncio.Queue[EventAdapter] = asyncio.Queue()
+        self.clock_offset_ns: int = 0
 
     async def on_update(self, component: Component):
         if isinstance(component, Sensor):
             if component.sensor == "gaze" and component.conn_type == "DIRECT":
                 self.gaze_sensor_url = component.url
         elif isinstance(component, Event):
-            adapted_event = EventAdapter(component)
+            adapted_event = EventAdapter(component, self.clock_offset_ns)
             await self.event_queue.put(adapted_event)
 
     async def make_status_update_notifier(self):
@@ -150,15 +159,49 @@ class DataReceiver:
             self.notifier = StatusUpdateNotifier(device, callbacks=[self.on_update])
             await self.notifier.receive_updates_start()
 
+    async def estimate_clock_offset(self):
+        async with Device(self.device_ip, self.device_port) as device:
+            status = await device.get_status()
+
+            if status.phone.time_echo_port is None:
+                logger.warning(
+                    "Pupil Invisible Companion app is out-of-date and does not support "
+                    "accurate time sync! Relying on less accurate NTP time sync."
+                )
+                return
+            logger.debug(f"Device Time Echo port: {status.phone.time_echo_port}")
+
+            time_offset_estimator = TimeOffsetEstimator(
+                status.phone.ip, status.phone.time_echo_port
+            )
+            estimated_offset = await time_offset_estimator.estimate()
+            if estimated_offset is None:
+                logger.warning(
+                    "Estimating clock offset failed. Relying on less accurate NTP time "
+                    "sync."
+                )
+                return
+            self.clock_offset_ns = round(estimated_offset.time_offset_ms.mean * 1e6)
+            logger.info(f"Estimated clock offset: {self.clock_offset_ns:_} ns")
+
     async def cleanup(self):
-        await self.notifier.receive_updates_stop()
+        if self.notifier is not None:
+            await self.notifier.receive_updates_stop()
+
+
+class GazeAdapter:
+    def __init__(self, sample: GazeData, clock_offset_ns: int):
+        self.x = sample.x
+        self.y = sample.y
+        self.timestamp_unix_seconds = (
+            sample.timestamp_unix_seconds + clock_offset_ns * 1e-9
+        )
 
 
 class EventAdapter:
-    def __init__(self, sample):
+    def __init__(self, sample: Event, clock_offset_ns: int):
         self.name = sample.name
-        self.timestamp_unix_ns = sample.timestamp
-        self.timestamp_unix_seconds = self.timestamp_unix_ns * 1e-9
+        self.timestamp_unix_seconds = (sample.timestamp + clock_offset_ns) * 1e-9
 
 
 def handle_done_pending_tasks(
@@ -194,4 +237,6 @@ async def send_events_in_interval(
 
 async def send_timesync_event(device_ip: str, device_port: int, message: str):
     async with Device(device_ip, device_port) as device:
+        # NOTE: No need to set timestamp with clock offset. Device already timestamps
+        # events on reception in target time domain.
         await device.send_event(message)
