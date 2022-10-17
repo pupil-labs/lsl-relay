@@ -38,8 +38,9 @@ async def main_async(
             device_identifier=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
+            time_sync_interval=time_sync_interval,
         )
-        await adapter.relay_receiver_to_publisher(time_sync_interval)
+        await adapter.relay_receiver_to_publisher()
     except TimeoutError:
         logger.error(
             "Make sure your device is connected to the same network.", exc_info=True

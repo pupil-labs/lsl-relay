@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import uuid
+from typing import List, NoReturn, Optional, Union
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
-from pupil_labs.realtime_api.models import Event, Sensor
+from pupil_labs.realtime_api.models import Component, Event, Sensor
 
 from pupil_labs.invisible_lsl_relay import outlets
 
@@ -13,11 +14,12 @@ logger = logging.getLogger(__name__)
 class Relay:
     def __init__(
         self,
-        device_ip,
-        device_port,
-        device_identifier,
-        outlet_prefix,
-        world_camera_serial,
+        device_ip: str,
+        device_port: int,
+        device_identifier: str,
+        outlet_prefix: str,
+        world_camera_serial: str,
+        time_sync_interval: int,
     ):
         self.device_ip = device_ip
         self.device_port = device_port
@@ -39,6 +41,7 @@ class Relay:
         self.publishing_gaze_task = None
         self.publishing_event_task = None
         self.receiving_task = None
+        self._time_sync_interval = time_sync_interval
 
     async def receive_gaze_sample(self):
         while True:
@@ -95,7 +98,14 @@ class Relay:
             self.publish_event_from_queue()
         )
 
-    async def relay_receiver_to_publisher(self, time_sync_interval):
+    async def relay_receiver_to_publisher(self):
+        await self.receiver.estimate_clock_offset()
+        tasks = await self.initialise_tasks()
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        handle_done_pending_tasks(done, pending)
+        await self.receiver.cleanup()
+
+    async def initialise_tasks(self) -> List["asyncio.Task[NoReturn]"]:
         await self.receiver.make_status_update_notifier()
         await self.start_receiving_task()
         await self.start_publishing_gaze()
@@ -106,31 +116,28 @@ class Relay:
             self.publishing_event_task,
         ]
         # start time sync task
-        if time_sync_interval:
+        if self._time_sync_interval:
             time_sync_task = asyncio.create_task(
                 send_events_in_interval(
                     self.device_ip,
                     self.device_port,
                     self.session_id,
-                    time_sync_interval,
+                    self._time_sync_interval,
                 )
             )
             tasks.append(time_sync_task)
-
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        handle_done_pending_tasks(done, pending)
-        await self.receiver.cleanup()
+        return [t for t in tasks if t is not None]
 
 
 class DataReceiver:
-    def __init__(self, device_ip, device_port):
+    def __init__(self, device_ip: str, device_port: int):
         self.device_ip = device_ip
         self.device_port = device_port
-        self.notifier = None
-        self.gaze_sensor_url = None
-        self.event_queue = asyncio.Queue()
+        self.notifier: Optional[StatusUpdateNotifier] = None
+        self.gaze_sensor_url: Optional[str] = None
+        self.event_queue: asyncio.Queue[EventAdapter] = asyncio.Queue()
 
-    async def on_update(self, component):
+    async def on_update(self, component: Component):
         if isinstance(component, Sensor):
             if component.sensor == "gaze" and component.conn_type == "DIRECT":
                 self.gaze_sensor_url = component.url
@@ -154,7 +161,9 @@ class EventAdapter:
         self.timestamp_unix_seconds = self.timestamp_unix_ns * 1e-9
 
 
-def handle_done_pending_tasks(done, pending):
+def handle_done_pending_tasks(
+    done: List["asyncio.Task[NoReturn]"], pending: List["asyncio.Task[NoReturn]"]
+):
     for done_task in done:
         try:
             done_task.result()
@@ -170,7 +179,9 @@ def handle_done_pending_tasks(done, pending):
 
 
 # send events in intervals
-async def send_events_in_interval(device_ip, device_port, session_id, sec=60):
+async def send_events_in_interval(
+    device_ip: str, device_port: int, session_id: Union[str, uuid.UUID], sec: int = 60
+):
     n_events_sent = 0
     while True:
         await send_timesync_event(
@@ -181,6 +192,6 @@ async def send_events_in_interval(device_ip, device_port, session_id, sec=60):
         logger.debug(f"sent time synchronization event no {n_events_sent}")
 
 
-async def send_timesync_event(device_ip, device_port, message: str):
+async def send_timesync_event(device_ip: str, device_port: int, message: str):
     async with Device(device_ip, device_port) as device:
         await device.send_event(message)
