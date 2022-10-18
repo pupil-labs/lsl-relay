@@ -74,6 +74,11 @@ where the events.csv file from the pupil cloud export is located. The json file 
 - ``lsl_to_cloud`` also contains an intercept and a slope, but for mapping from lsl time to cloud time
 - ``info`` contains the type of the model that was fitted and the version of the time alignment.
 
+Example:
+
+.. literalinclude:: ../../examples/cloud_recordings/time_alignment_parameters.json
+  :language: json
+  :linenos:
 
 Use the parameters from the linear model to map between cloud time and lsl time
 ===============================================================================
@@ -81,14 +86,42 @@ Import the installed dependencies before running the example code below:
 
 .. literalinclude:: ../../examples/time_mapping_from_parameters.py
    :language: python
-   :lines: 1-3
+   :lines: 2,4
    :linenos:
 
-Import the parameters from the json file and use them to transform the time stamps for the gaze data:
+Load Pupil-Cloud-exported gaze data and convert nanoseconds to seconds
+
+.. literalinclude:: ../../examples/time_mapping_from_parameters.py
+   :language: python
+   :lines: 6,9,12
+   :linenos:
+
+Import the parameters from the json file:
 
 .. literalinclude:: ../../examples/time_mapping_from_parameters.py
   :language: python
-  :lines: 5-
+  :lines: 15,16
+  :linenos:
+
+Define a simple linear model:
+
+.. literalinclude:: ../../examples/time_mapping_from_parameters.py
+  :language: python
+  :lines: 20,21
+  :linenos:
+
+Apply the linear model to transform timestamps from Pupil Cloud to LSL time domain:
+
+.. literalinclude:: ../../examples/time_mapping_from_parameters.py
+  :language: python
+  :lines: 25-27
+  :linenos:
+
+Save the time-aligned data as CSV file:
+
+.. literalinclude:: ../../examples/time_mapping_from_parameters.py
+  :language: python
+  :lines: 29
   :linenos:
 
 The new column ``'lsl time [s]'`` contains the lsl-compatible time stamps.
