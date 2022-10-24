@@ -30,6 +30,10 @@ def extract_illuminance(eye_video_path: Path):
     time = _load_time(eye_video_path.with_suffix(".time"))
     illuminance = _decode_illuminance(eye_video_path, num_expected_frames=time.shape[0])
 
+    min_len = min(time.shape[0], illuminance.shape[0])
+    time = time.iloc[:min_len]
+    illuminance = illuminance.iloc[:min_len]
+
     output_path = eye_video_path.with_suffix(".illuminance.csv")
     print(f"Writing result to {output_path}")
     pd.concat([illuminance, time], axis="columns").to_csv(output_path, index=False)
