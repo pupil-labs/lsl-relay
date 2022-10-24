@@ -106,6 +106,25 @@ def load_session_id_to_cloud_exports_mapping(
             logger.debug(traceback.format_exc())
             continue
         results[session_id] = CloudExportEvents(events_path.parent, data)
+    for events_path in search_root_path.rglob("event.txt"):
+        event_time_path = events_path.with_name("event.time")
+        if not events_path.exists():
+            continue
+
+        data = pd.DataFrame(
+            {
+                "timestamp [ns]": np.fromfile(event_time_path, dtype="<u8"),
+                "name": events_path.read_text().splitlines(),
+            }
+        )
+
+        try:
+            session_id = _extract_session_id_from_cloud_export_events(data)
+        except ValueError:
+            logger.warning(f"Could not extract session id from {events_path}")
+            logger.debug(traceback.format_exc())
+            continue
+        results[session_id] = CloudExportEvents(events_path.parent, data)
     return results
 
 
