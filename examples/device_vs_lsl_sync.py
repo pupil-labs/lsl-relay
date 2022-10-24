@@ -11,7 +11,10 @@ from pupil_labs.invisible_lsl_relay.linear_time_model import TimeAlignmentModels
 install()
 sns.set(font_scale=1.5)
 
-illuminance_files = sorted(Path("./companion_app_exports").rglob("*.illuminance.csv"))
+illuminance_files = sorted(
+    Path("./companion_app_exports").glob("subject_*/*.illuminance.csv")
+)
+print(f"Illuminance files: {sorted(map(str, illuminance_files))}")
 companion_device_dfs = {f: pd.read_csv(f) for f in illuminance_files}
 
 for path, df in companion_device_dfs.items():
@@ -33,13 +36,8 @@ for path, df in lsl_time_dfs.items():
     model_path = path.with_name("time_alignment_parameters.json")
     models = TimeAlignmentModels.read_json(model_path)
     df["time [s]"] = df["timestamp [ns]"] * 1e-9
-    df["time"] = models.cloud_to_lsl.predict(df[["time [s]"]].values)
-    print(
-        f"{path.stem:40s}",
-        f'{df["timestamp [ns]"].max()-df["timestamp [ns]"].min():_}',
-        f'{df["time [s]"].max() - df["time [s]"].min()}',
-        f'{df["time"].max() - df["time"].min()}',
-    )
+
+    df["time [s]"] = models.cloud_to_lsl.predict(df[["time [s]"]].values)
     df["time domain"] = "Lab Streaming Layer"
 
 illuminance_df = pd.concat(
