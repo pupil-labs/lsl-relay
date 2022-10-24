@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, Optional, Type, overload
+from typing import ClassVar, Optional, Type, Union, overload
 
 import numpy as np
 import pandas as pd
@@ -21,37 +21,37 @@ class TimeAlignmentModels:
     lsl_to_cloud: linear_model.LinearRegression
 
     @overload
-    def to_json(self, path: Path) -> None:
+    def to_json(self, path: Union[str, Path]) -> None:
         ...
 
     @overload
     def to_json(self, path: None) -> str:
         ...
 
-    def to_json(self, path: Optional[Path] = None) -> Optional[str]:
+    def to_json(self, path: Union[None, str, Path] = None) -> Optional[str]:
         mapping_parameters = {
-            'cloud_to_lsl': {
-                'intercept': self.cloud_to_lsl.intercept_,
-                'slope': self.cloud_to_lsl.coef_[0],
+            "cloud_to_lsl": {
+                "intercept": self.cloud_to_lsl.intercept_,
+                "slope": self.cloud_to_lsl.coef_[0],
             },
-            'lsl_to_cloud': {
-                'intercept': self.lsl_to_cloud.intercept_,
-                'slope': self.lsl_to_cloud.coef_[0],
+            "lsl_to_cloud": {
+                "intercept": self.lsl_to_cloud.intercept_,
+                "slope": self.lsl_to_cloud.coef_[0],
             },
-            'info': {
-                'model_type': type(self.cloud_to_lsl).__name__,
-                'version': self._version,
+            "info": {
+                "model_type": type(self.cloud_to_lsl).__name__,
+                "version": self._version,
             },
         }
         serialized = json.dumps(mapping_parameters, indent=4)
         if path is not None:
-            path.write_text(serialized)
+            Path(path).write_text(serialized)
         else:
             return serialized
 
     @classmethod
-    def read_json(cls: Type[Self], path: Path) -> Self:
-        mapping = json.loads(path.read_text())
+    def read_json(cls: Type[Self], path: Union[str, Path]) -> Self:
+        mapping = json.loads(Path(path).read_text())
         mapping_version = mapping["info"]["version"]
         if mapping_version != cls._version:
             raise ValueError(
@@ -67,8 +67,8 @@ class TimeAlignmentModels:
         params: ModelParameters,
     ) -> linear_model.LinearRegression:
         model = linear_model.LinearRegression()
-        model.intercept_ = params['intercept']
-        model.coef_ = np.array(params['intercept'])
+        model.intercept_ = params["intercept"]
+        model.coef_ = np.array([params["slope"]])
         return model
 
 
@@ -76,7 +76,7 @@ def perform_time_alignment(
     lsl_event_data: pd.DataFrame, cloud_event_data: pd.DataFrame, timestamp_label: str
 ) -> TimeAlignmentModels:
 
-    cloud_event_data[timestamp_label] = cloud_event_data['timestamp [ns]'] * 1e-9
+    cloud_event_data[timestamp_label] = cloud_event_data["timestamp [ns]"] * 1e-9
 
     cloud_to_lsl = _linear_time_mapper(
         cloud_event_data[[timestamp_label]], lsl_event_data[timestamp_label]

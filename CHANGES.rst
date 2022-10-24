@@ -1,7 +1,17 @@
-2.1.1
-#####
+3.0.0 (WIP)
+###########
+- Estimate and correct clock offset between Companion device and relay
+  (:py:meth:`pupil_labs.invisible_lsl_relay.relay.DataReceiver.estimate_clock_offset`)
+- Add estimated clock offset to acquisition info
 - Add command line tool for lsl-to-cloud time alignment and vice versa
 - Change the events sent for time alignment to include a unique session id
+- Add command line tool for monitoring sampling rates in real time
+- Add example on how to apply estimated time alignments
+- Update module skeleton
+- Update pre-commit config
+- [Backwards-incompatible API change] Restructured
+  (:py:class:`pupil_labs.invisible_lsl_relay.relay.Relay`) two-step setup into a single
+  :py:meth:`class method call <pupil_labs.invisible_lsl_relay.relay.Relay.run>`
 
 2.1.0
 #####
