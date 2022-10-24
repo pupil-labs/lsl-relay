@@ -42,11 +42,11 @@ def main(path_to_xdf: Path, paths_to_exports: Collection[Path]):
 def align_and_save_data(path_to_xdf: Path, paths_to_cloud: Iterable[Path]):
     logging.info(f"Loading XDF events from {path_to_xdf}")
     xdf_events = load_session_id_to_xdf_event_mapping(path_to_xdf)
-    logging.info(f"Extracted XDF events: {xdf_events.keys()}")
+    logging.debug(f"Extracted XDF events: {set(xdf_events.keys())}")
     for cloud_path in paths_to_cloud:
         logging.info(f"Loading session ids from {cloud_path}")
         cloud_events = load_session_id_to_cloud_exports_mapping(cloud_path)
-        logging.info(f"Extracted cloud events: {cloud_events.keys()}")
+        logging.debug(f"Extracted cloud events: {set(cloud_events.keys())}")
 
         common_session_ids = xdf_events.keys() & cloud_events.keys()
         logger.info(f"Common session ids: {common_session_ids}")
@@ -59,10 +59,14 @@ def align_and_save_data(path_to_xdf: Path, paths_to_cloud: Iterable[Path]):
                 _PairedDataFrames(xdf_event_data, cloud_event_info.data),
                 event_column_name,
             )
+            logger.debug(f"Common events (xdf):\n{xdf_event_data}")
+            logger.debug(f"Common events (cloud):\n{cloud_event_data}")
 
             result = perform_time_alignment(
                 xdf_event_data, cloud_event_data, event_column_timestamp
             )
+            logger.debug(f"Cloud->LSL offset: {result.cloud_to_lsl.intercept_}")
+            logger.debug(f"LSL->Cloud offset: {result.lsl_to_cloud.intercept_}")
             result_path = cloud_event_info.directory / "time_alignment_parameters.json"
             logger.info(f"Writing time alignment parameters to {result_path}")
             result.to_json(result_path)
