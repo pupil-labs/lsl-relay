@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import uuid
-from typing import List, NoReturn, Optional, Union
+from typing import Iterable, List, NoReturn, Optional
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
 from pupil_labs.realtime_api.models import Component, Event, Sensor
@@ -27,7 +27,7 @@ class Relay:
         self.device_ip = device_ip
         self.device_port = device_port
         self.receiver = DataReceiver(device_ip, device_port)
-        self.session_id = uuid.uuid4()
+        self.session_id = str(uuid.uuid4())
         self.gaze_outlet = outlets.PupilInvisibleGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
@@ -62,7 +62,7 @@ class Relay:
                 logger.debug("The gaze sensor was not yet identified.")
                 await asyncio.sleep(1)
 
-    async def publish_gaze_sample(self, timeout):
+    async def publish_gaze_sample(self, timeout: float):
         missing_sample_duration = 0
         while True:
             try:
@@ -214,7 +214,8 @@ class EventAdapter:
 
 
 def handle_done_pending_tasks(
-    done: List["asyncio.Task[NoReturn]"], pending: List["asyncio.Task[NoReturn]"]
+    done: Iterable["asyncio.Task[NoReturn]"],
+    pending: Iterable["asyncio.Task[NoReturn]"],
 ):
     for done_task in done:
         try:
@@ -232,7 +233,7 @@ def handle_done_pending_tasks(
 
 # send events in intervals
 async def send_events_in_interval(
-    device_ip: str, device_port: int, session_id: Union[str, uuid.UUID], sec: int = 60
+    device_ip: str, device_port: int, session_id: str, sec: int = 60
 ):
     n_events_sent = 0
     while True:

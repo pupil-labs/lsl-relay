@@ -2,10 +2,11 @@ import asyncio
 import concurrent.futures
 import logging
 import time
+from typing import Optional, Sequence, Union
 
 import click
 from pupil_labs.realtime_api.device import Device
-from pupil_labs.realtime_api.discovery import Network
+from pupil_labs.realtime_api.discovery import DiscoveredDeviceInfo, Network
 from rich import print
 from rich.console import group
 from rich.live import Live
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 async def main_async(
-    device_address: str = None,
-    outlet_prefix: str = None,
+    device_address: Optional[str] = None,
+    outlet_prefix: str = "",
     time_sync_interval: int = 60,
     timeout: int = 10,
 ):
@@ -50,7 +51,7 @@ async def main_async(
 
 
 class DeviceDiscoverer:
-    def __init__(self, search_timeout):
+    def __init__(self, search_timeout: float):
         self.selected_device_info = None
         self.search_timeout = search_timeout
         self.n_reload = 0
@@ -74,7 +75,7 @@ class DeviceDiscoverer:
         return self.selected_device_info.addresses[0], self.selected_device_info.port
 
 
-def get_user_defined_device(device_address):
+def get_user_defined_device(device_address: str):
     try:
         address, port = device_address.split(":")
         port = int(port)
@@ -88,7 +89,7 @@ def get_user_defined_device(device_address):
         ) from exc
 
 
-async def get_device_info_for_outlet(device_ip, device_port):
+async def get_device_info_for_outlet(device_ip: str, device_port: int):
     async with Device(device_ip, device_port) as device:
         try:
             status = await asyncio.wait_for(device.get_status(), 10)
@@ -115,7 +116,9 @@ async def input_async():
         return user_input.strip()
 
 
-def evaluate_user_input(user_input, device_list):
+def evaluate_user_input(
+    user_input: str, device_list: Sequence[DiscoveredDeviceInfo]
+) -> Optional[DiscoveredDeviceInfo]:
     try:
         device_info = device_list[int(user_input)]
         return device_info
@@ -128,7 +131,7 @@ def evaluate_user_input(user_input, device_list):
 
 
 @group()
-def print_device_list(network, n_reload):
+def print_device_list(network: Network, n_reload: int):
     yield ""
     table = Table(title="Available Pupil Invisible Devices")
     table.add_column("Index", style="blue")
@@ -159,7 +162,7 @@ def print_device_list(network, n_reload):
     yield ""
 
 
-def logger_setup(file_name, debug_level=logging.DEBUG):
+def logger_setup(file_name: str, debug_level: Union[str, int] = logging.DEBUG):
     logging.basicConfig(
         level=debug_level,
         filename=file_name,
@@ -172,7 +175,7 @@ def logger_setup(file_name, debug_level=logging.DEBUG):
     logging.getLogger().addHandler(stream_handler)
 
 
-def epoch_is(year, month, day):
+def epoch_is(year: int, month: int, day: int) -> bool:
     epoch = time.gmtime(0)
     return epoch.tm_year == year and epoch.tm_mon == month and epoch.tm_mday == day
 
