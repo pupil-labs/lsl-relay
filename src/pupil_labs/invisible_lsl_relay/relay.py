@@ -15,8 +15,9 @@ logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")
 
 
 class Relay:
-    def __init__(
-        self,
+    @classmethod
+    async def run(
+        cls,
         device_ip: str,
         device_port: int,
         device_identifier: str,
@@ -24,21 +25,47 @@ class Relay:
         world_camera_serial: str,
         time_sync_interval: int,
     ):
+        receiver = DataReceiver(device_ip, device_port)
+        await receiver.estimate_clock_offset()
+        relay = cls(
+            device_ip,
+            device_port,
+            receiver,
+            device_identifier,
+            outlet_prefix,
+            world_camera_serial,
+            time_sync_interval,
+        )
+        await relay.relay_receiver_to_publisher()
+        await receiver.cleanup()
+
+    def __init__(
+        self,
+        device_ip: str,
+        device_port: int,
+        receiver: "DataReceiver",
+        device_identifier: str,
+        outlet_prefix: str,
+        world_camera_serial: str,
+        time_sync_interval: int,
+    ):
         self.device_ip = device_ip
         self.device_port = device_port
-        self.receiver = DataReceiver(device_ip, device_port)
+        self.receiver = receiver
         self.session_id = str(uuid.uuid4())
         self.gaze_outlet = outlets.PupilInvisibleGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
             session_id=self.session_id,
+            clock_offset_ns=self.receiver.clock_offset_ns,
         )
         self.event_outlet = outlets.PupilInvisibleEventOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
             session_id=self.session_id,
+            clock_offset_ns=self.receiver.clock_offset_ns,
         )
         self.gaze_sample_queue: asyncio.Queue[GazeAdapter] = asyncio.Queue()
         self.publishing_gaze_task = None
@@ -107,11 +134,9 @@ class Relay:
         )
 
     async def relay_receiver_to_publisher(self):
-        await self.receiver.estimate_clock_offset()
         tasks = await self.initialise_tasks()
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
         handle_done_pending_tasks(done, pending)
-        await self.receiver.cleanup()
 
     async def initialise_tasks(self) -> List["asyncio.Task[NoReturn]"]:
         await self.receiver.make_status_update_notifier()

@@ -64,6 +64,7 @@ class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
         outlet_prefix: str,
         world_camera_serial: str,
         session_id: str,
+        clock_offset_ns: int = 0,
     ):
         PupilInvisibleOutlet.__init__(
             self,
@@ -76,6 +77,7 @@ class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
                 version=VERSION,
                 world_camera_serial=world_camera_serial,
                 session_id=session_id,
+                clock_offset_ns=clock_offset_ns,
             ),
         )
 
@@ -87,6 +89,7 @@ class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
         outlet_prefix: str,
         world_camera_serial: str,
         session_id: str,
+        clock_offset_ns: int = 0,
     ):
         PupilInvisibleOutlet.__init__(
             self,
@@ -99,6 +102,7 @@ class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
                 version=VERSION,
                 world_camera_serial=world_camera_serial,
                 session_id=session_id,
+                clock_offset_ns=clock_offset_ns,
             ),
         )
 

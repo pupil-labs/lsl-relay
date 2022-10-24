@@ -33,7 +33,7 @@ async def main_async(
         device_identifier, world_camera_serial = await get_device_info_for_outlet(
             device_ip_address, device_port
         )
-        adapter = relay.Relay(
+        await relay.Relay.run(
             device_ip=device_ip_address,
             device_port=device_port,
             device_identifier=device_identifier,
@@ -41,7 +41,6 @@ async def main_async(
             world_camera_serial=world_camera_serial,
             time_sync_interval=time_sync_interval,
         )
-        await adapter.relay_receiver_to_publisher()
     except TimeoutError:
         logger.error(
             "Make sure your device is connected to the same network.", exc_info=True
@@ -173,6 +172,7 @@ def logger_setup(file_name: str, debug_level: Union[str, int] = logging.DEBUG):
     formatter = logging.Formatter("%(message)s")
     stream_handler.setFormatter(formatter)
     logging.getLogger().addHandler(stream_handler)
+    logging.info(f"Saving logs to {file_name}")
 
 
 def epoch_is(year: int, month: int, day: int) -> bool:
