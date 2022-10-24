@@ -11,6 +11,7 @@ extensions = [
     "jaraco.packaging.sphinx",
     "rst.linker",
     "sphinx_toolbox.collapse",
+    "sphinx_toolbox.more_autodoc.autonamedtuple",
 ]
 
 master_doc = "index"
@@ -37,6 +38,10 @@ link_files = {
 
 # Be strict about any broken references:
 nitpicky = True
+nitpick_ignore = [
+    ("py:class", "_asyncio.Task"),
+    ("py:class", "pylsl.pylsl.XMLElement"),
+]
 
 # Include Python intersphinx mapping to prevent failures
 # jaraco/skeleton#51

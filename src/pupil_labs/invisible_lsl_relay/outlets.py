@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Sample(Protocol):
     timestamp_unix_seconds: float
+    "Unix-epoch timestamp in seconds"
 
 
 class PupilInvisibleOutlet:
