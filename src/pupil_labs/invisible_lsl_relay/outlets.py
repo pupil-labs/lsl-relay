@@ -1,15 +1,14 @@
 import logging
 import time
-from typing import Any, Callable, Dict, List
+from typing import Callable, Dict, List
 
 import pylsl as lsl
-from typing_extensions import Literal
+from typing_extensions import Literal, Protocol
 
 from pupil_labs.invisible_lsl_relay import __version__
 from pupil_labs.invisible_lsl_relay.channels import (
     PiChannel,
     pi_event_channels,
-    pi_extract_from_sample,
     pi_gaze_channels,
 )
 
@@ -22,13 +21,16 @@ LSLChannelFormatConstant = Literal[1, 2, 3, 4, 5, 6, 7, 0]
 logger = logging.getLogger(__name__)
 
 
+class Sample(Protocol):
+    timestamp_unix_seconds: float
+
+
 class PupilInvisibleOutlet:
     def __init__(
         self,
         channel_func: Callable[[], List[PiChannel]],
         outlet_type: str,
         outlet_format: LSLChannelFormatConstant,
-        timestamp_query: Callable[[Any], float],
         outlet_name_prefix: str,
         outlet_uuid: str,
         acquisition_info: Dict[str, str],
@@ -43,12 +45,11 @@ class PupilInvisibleOutlet:
             outlet_name_prefix,
             acquisition_info,
         )
-        self._timestamp_query = timestamp_query
 
-    def push_sample_to_outlet(self, sample: Any):
+    def push_sample_to_outlet(self, sample: Sample):
         try:
             sample_to_push = [chan.sample_query(sample) for chan in self._channels]
-            timestamp_to_push = self._timestamp_query(sample) - get_lsl_time_offset()
+            timestamp_to_push = sample.timestamp_unix_seconds - get_lsl_time_offset()
         except Exception as exc:
             logger.error(f"Error extracting from sample: {exc}")
             logger.debug(str(sample))
@@ -69,7 +70,6 @@ class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
             channel_func=pi_gaze_channels,
             outlet_type="Gaze",
             outlet_format=lsl.cf_double64,
-            timestamp_query=pi_extract_from_sample("timestamp_unix_seconds"),
             outlet_name_prefix=outlet_prefix,
             outlet_uuid=f"{device_id}_Gaze",
             acquisition_info=compose_acquisition_info(
@@ -93,7 +93,6 @@ class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
             channel_func=pi_event_channels,
             outlet_type="Event",
             outlet_format=lsl.cf_string,
-            timestamp_query=pi_extract_from_sample("timestamp_unix_seconds"),
             outlet_name_prefix=outlet_prefix,
             outlet_uuid=f"{device_id}_Event",
             acquisition_info=compose_acquisition_info(
