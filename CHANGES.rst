@@ -1,3 +1,9 @@
+3.0.1 (WIP)
+###########
+- Detect missing dependencies and provide instructions on how to install them
+- Document how to install time alignment dependencies in the corresponding guide
+
+
 3.0.0.post1 (2022-10-25)
 ########################
 - Fix displayed version in docs

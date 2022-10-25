@@ -6,8 +6,18 @@ from typing import Collection, Dict, Iterable, NamedTuple
 
 import click
 import numpy as np
-import pandas as pd
-import pyxdf
+
+try:
+    import pandas as pd
+    import pyxdf
+except ImportError as err:
+    from rich.traceback import install
+
+    install()
+    raise ImportError(
+        "Some `lsl_relay_time_alignment` dependencies are missing. Install them via\n\t"
+        "\n\n\tpip install pupil-invisible-lsl-relay[pupil_cloud_alignment]\n"
+    ) from err
 
 from .cli import logger_setup
 from .linear_time_model import perform_time_alignment
