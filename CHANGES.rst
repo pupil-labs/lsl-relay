@@ -1,3 +1,7 @@
+3.0.0.post1 (2022-10-25)
+########################
+- Fix displayed version in docs
+
 3.0.0 (2022-10-25)
 ##################
 - Estimate and correct clock offset between Companion device and relay
