@@ -1,4 +1,4 @@
-3.0.0 (2022-10-24)
+3.0.0 (2022-10-25)
 ##################
 - Estimate and correct clock offset between Companion device and relay
   (:py:meth:`pupil_labs.invisible_lsl_relay.relay.DataReceiver.estimate_clock_offset`)
