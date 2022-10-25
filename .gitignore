@@ -343,3 +343,8 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,macos,windows,linux,pycharm
+
+examples/cloud_recordings/
+examples/companion_app_exports/
+examples/lsl_recordings/
+examples/illuminance_over_time.png

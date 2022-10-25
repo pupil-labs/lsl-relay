@@ -10,3 +10,4 @@ High-level overviews and hands-on examples how to use the lsl relay.
 
    overview.rst
    time_alignment.rst
+   device_sync.rst

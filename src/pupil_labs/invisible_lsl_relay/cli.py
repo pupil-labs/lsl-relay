@@ -2,10 +2,16 @@ import asyncio
 import concurrent.futures
 import logging
 import time
+from typing import Optional, Sequence, Union
 
 import click
 from pupil_labs.realtime_api.device import Device
-from pupil_labs.realtime_api.discovery import Network
+from pupil_labs.realtime_api.discovery import DiscoveredDeviceInfo, Network
+from rich import print
+from rich.console import group
+from rich.live import Live
+from rich.logging import RichHandler
+from rich.table import Table
 
 from pupil_labs.invisible_lsl_relay import relay
 
@@ -13,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 async def main_async(
-    device_address: str = None,
-    outlet_prefix: str = None,
+    device_address: Optional[str] = None,
+    outlet_prefix: str = "",
     time_sync_interval: int = 60,
     timeout: int = 10,
 ):
@@ -27,85 +33,91 @@ async def main_async(
         device_identifier, world_camera_serial = await get_device_info_for_outlet(
             device_ip_address, device_port
         )
-        adapter = relay.Relay(
+        await relay.Relay.run(
             device_ip=device_ip_address,
             device_port=device_port,
             device_identifier=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
+            time_sync_interval=time_sync_interval,
         )
-        await adapter.relay_receiver_to_publisher(time_sync_interval)
     except TimeoutError:
         logger.error(
-            'Make sure your device is connected to the same network.', exc_info=True
+            "Make sure your device is connected to the same network.", exc_info=True
         )
     finally:
-        logger.info('The LSL stream was closed.')
+        logger.info("The LSL stream was closed.")
 
 
 class DeviceDiscoverer:
-    def __init__(self, search_timeout):
+    def __init__(self, search_timeout: float):
         self.selected_device_info = None
         self.search_timeout = search_timeout
         self.n_reload = 0
 
     async def get_device_from_list(self):
         async with Network() as network:
-            print("Looking for devices in your network...\n\t", end="")
-            await network.wait_for_new_device(timeout_seconds=self.search_timeout)
-
-            while self.selected_device_info is None:
-                print_device_list(network, self.n_reload)
-                self.n_reload += 1
-                user_input = await input_async()
-                self.selected_device_info = evaluate_user_input(
-                    user_input, network.devices
-                )
+            with Live(
+                "[blue]Looking for devices in your network...",
+                auto_refresh=False,
+                redirect_stdout=False,
+            ) as live:
+                await network.wait_for_new_device(timeout_seconds=self.search_timeout)
+                while self.selected_device_info is None:
+                    live.update(print_device_list(network, self.n_reload), refresh=True)
+                    self.n_reload += 1
+                    user_input = await input_async()
+                    self.selected_device_info = evaluate_user_input(
+                        user_input, network.devices
+                    )
+            logger.info(f"Connecting to {self.selected_device_info}")
         return self.selected_device_info.addresses[0], self.selected_device_info.port
 
 
-def get_user_defined_device(device_address):
+def get_user_defined_device(device_address: str):
     try:
-        address, port = device_address.split(':')
+        address, port = device_address.split(":")
         port = int(port)
         if address == "":
             raise ValueError("Empty address")
         return address, port
     except ValueError as exc:
         raise ValueError(
-            'Device address could not be parsed in IP and port!\n '
-            'Please provide the address in the format IP:port'
+            "Device address could not be parsed in IP and port!\n "
+            "Please provide the address in the format IP:port"
         ) from exc
 
 
-async def get_device_info_for_outlet(device_ip, device_port):
+async def get_device_info_for_outlet(device_ip: str, device_port: int):
     async with Device(device_ip, device_port) as device:
         try:
             status = await asyncio.wait_for(device.get_status(), 10)
         except asyncio.TimeoutError as exc:
             logger.error(
-                'This ip address was not found in the network. '
-                'Please check for typos and make sure the device '
-                'is connected to the same network.'
+                "This ip address was not found in the network. "
+                "Please check for typos and make sure the device "
+                "is connected to the same network."
             )
             raise exc
         if not status.hardware.world_camera_serial:
-            logger.warning('The world camera is not connected.')
-        world_camera_serial = status.hardware.world_camera_serial or 'default'
+            logger.warning("The world camera is not connected.")
+        world_camera_serial = status.hardware.world_camera_serial or "default"
         return status.phone.device_id, world_camera_serial
 
 
 async def input_async():
     # based on https://gist.github.com/delivrance/675a4295ce7dc70f0ce0b164fcdbd798?
     # permalink_comment_id=3590322#gistcomment-3590322
-    with concurrent.futures.ThreadPoolExecutor(1, 'AsyncInput') as executor:
+    with concurrent.futures.ThreadPoolExecutor(1, "AsyncInput") as executor:
         user_input = await asyncio.get_event_loop().run_in_executor(
-            executor, input, '>>> '
+            executor, input, ">>>"
         )
         return user_input.strip()
 
 
-def evaluate_user_input(user_input, device_list):
+def evaluate_user_input(
+    user_input: str, device_list: Sequence[DiscoveredDeviceInfo]
+) -> Optional[DiscoveredDeviceInfo]:
     try:
         device_info = device_list[int(user_input)]
         return device_info
@@ -113,33 +125,57 @@ def evaluate_user_input(user_input, device_list):
         logger.debug("Reloading the device list.")
         return None
     except IndexError:
-        print('Please choose an index from the list!')
+        print("Please choose an index from the list!")
         return None
 
 
-def print_device_list(network, n_reload):
-    print("\n======================================")
-    print("Please select a Pupil Invisible device by index:")
-    print("\tIndex\tAddress" + (" " * 14) + "\tName")
+@group()
+def print_device_list(network: Network, n_reload: int):
+    yield ""
+    table = Table(title="Available Pupil Invisible Devices")
+    table.add_column("Index", style="blue")
+    table.add_column("Address")
+    table.add_column("Name")
     for device_index, device_info in enumerate(network.devices):
         ip = device_info.addresses[0]
         port = device_info.port
         full_name = device_info.name
         name = full_name.split(":")[1]
-        print(f"\t{device_index}\t{ip}:{port}\t{name}")
-
-    print()
-    print("To reload the list, hit enter. ")
-    print("To abort device selection, use 'ctrl+c' and hit 'enter'")
+        table.add_row(str(device_index), f"{ip}:{port}", name)
+    yield table
+    yield (
+        "[green] Select [/green] Enter [blue]index[/blue] and hit "
+        "[magenta]enter[/magenta]"
+    )
+    yield "[green] Reload [/green] Hit [magenta]enter[/magenta] without input"
+    yield (
+        "[yellow]  Abort [/yellow] Use [magenta]ctrl+c[/magenta] and hit "
+        "[magenta]enter[/magenta]"
+    )
     if n_reload >= 5:
-        print(
-            "Can't find the device you're looking for?\n"
+        yield (
+            "[yellow]Can't find the device you're looking for?\n"
             "Make sure the Companion App is connected to the same "
-            "network and at least version v1.4.14."
+            "network and at least version [bold]v1.4.14."
         )
+    yield ""
 
 
-def epoch_is(year, month, day):
+def logger_setup(file_name: str, debug_level: Union[str, int] = logging.DEBUG):
+    logging.basicConfig(
+        level=debug_level,
+        filename=file_name,
+        format="%(asctime)s:%(name)s:%(levelname)s:%(message)s",
+    )
+    # set up console logging
+    stream_handler = RichHandler(level="INFO")
+    formatter = logging.Formatter("%(message)s")
+    stream_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(stream_handler)
+    logging.info(f"Saving logs to {file_name}")
+
+
+def epoch_is(year: int, month: int, day: int) -> bool:
     epoch = time.gmtime(0)
     return epoch.tm_year == year and epoch.tm_mon == month and epoch.tm_mday == day
 
@@ -181,18 +217,7 @@ def relay_setup_and_start(
     time_sync_interval: int,
 ):
     try:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            filename=log_file_name,
-            format='%(asctime)s:%(name)s:%(levelname)s:%(message)s',
-        )
-        # set up console logging
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(name)s\t| %(levelname)s\t| %(message)s')
-        stream_handler.setFormatter(formatter)
-
-        logging.getLogger().addHandler(stream_handler)
+        logger_setup(log_file_name)
 
         # check epoch time
         assert epoch_is(

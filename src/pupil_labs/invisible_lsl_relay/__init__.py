@@ -1,6 +1,13 @@
 """Top-level entry-point for the <project_name> package"""
 
-# .version is generated on install via setuptools_scm, see pyproject.toml
-from .version import __version__, __version_info__
+try:
+    from importlib.metadata import PackageNotFoundError, version
+except ImportError:
+    from importlib_metadata import PackageNotFoundError, version
 
-__all__ = ["__version__", "__version_info__"]
+try:
+    __version__: str = version("pupil-invisible-lsl-relay")
+except PackageNotFoundError:
+    __version__ = "unknown"
+
+__all__ = ["__version__"]

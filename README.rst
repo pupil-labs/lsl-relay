@@ -17,7 +17,7 @@
 .. image:: https://readthedocs.org/projects/pupil-invisible-lsl-relay/badge/?version=latest
    :target: https://pupil-invisible-lsl-relay.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://img.shields.io/badge/skeleton-2021-informational
+.. image:: https://img.shields.io/badge/skeleton-2022-informational
    :target: https://blog.jaraco.com/skeleton
 
 *************************

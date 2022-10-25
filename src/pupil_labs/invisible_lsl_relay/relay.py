@@ -1,40 +1,77 @@
 import asyncio
 import logging
+import uuid
+from typing import Iterable, List, NoReturn, Optional
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
-from pupil_labs.realtime_api.models import Event, Sensor
+from pupil_labs.realtime_api.models import Component, Event, Sensor
+from pupil_labs.realtime_api.streaming import GazeData
+from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
 from pupil_labs.invisible_lsl_relay import outlets
 
 logger = logging.getLogger(__name__)
+logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")
 
 
 class Relay:
+    @classmethod
+    async def run(
+        cls,
+        device_ip: str,
+        device_port: int,
+        device_identifier: str,
+        outlet_prefix: str,
+        world_camera_serial: str,
+        time_sync_interval: int,
+    ):
+        receiver = DataReceiver(device_ip, device_port)
+        await receiver.estimate_clock_offset()
+        relay = cls(
+            device_ip,
+            device_port,
+            receiver,
+            device_identifier,
+            outlet_prefix,
+            world_camera_serial,
+            time_sync_interval,
+        )
+        await relay.relay_receiver_to_publisher()
+        await receiver.cleanup()
+
     def __init__(
         self,
-        device_ip,
-        device_port,
-        device_identifier,
-        outlet_prefix,
-        world_camera_serial,
+        device_ip: str,
+        device_port: int,
+        receiver: "DataReceiver",
+        device_identifier: str,
+        outlet_prefix: str,
+        world_camera_serial: str,
+        time_sync_interval: int,
     ):
         self.device_ip = device_ip
         self.device_port = device_port
-        self.receiver = DataReceiver(device_ip, device_port)
+        self.receiver = receiver
+        self.session_id = str(uuid.uuid4())
         self.gaze_outlet = outlets.PupilInvisibleGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
+            session_id=self.session_id,
+            clock_offset_ns=self.receiver.clock_offset_ns,
         )
         self.event_outlet = outlets.PupilInvisibleEventOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
+            session_id=self.session_id,
+            clock_offset_ns=self.receiver.clock_offset_ns,
         )
-        self.gaze_sample_queue = asyncio.Queue()
+        self.gaze_sample_queue: asyncio.Queue[GazeAdapter] = asyncio.Queue()
         self.publishing_gaze_task = None
         self.publishing_event_task = None
         self.receiving_task = None
+        self._time_sync_interval = time_sync_interval
 
     async def receive_gaze_sample(self):
         while True:
@@ -42,12 +79,17 @@ class Relay:
                 async for gaze in receive_gaze_data(
                     self.receiver.gaze_sensor_url, run_loop=True, log_level=30
                 ):
-                    await self.gaze_sample_queue.put(gaze)
+                    if isinstance(gaze, GazeData):
+                        await self.gaze_sample_queue.put(
+                            GazeAdapter(gaze, self.receiver.clock_offset_ns)
+                        )
+                    else:
+                        logger.warning(f"Dropping unknown gaze data type: {gaze}")
             else:
-                logger.debug('The gaze sensor was not yet identified.')
+                logger.debug("The gaze sensor was not yet identified.")
                 await asyncio.sleep(1)
 
-    async def publish_gaze_sample(self, timeout):
+    async def publish_gaze_sample(self, timeout: float):
         missing_sample_duration = 0
         while True:
             try:
@@ -58,7 +100,7 @@ class Relay:
             except asyncio.TimeoutError:
                 missing_sample_duration += timeout
                 logger.warning(
-                    'No gaze sample was received for %i seconds.',
+                    "No gaze sample was received for %i seconds.",
                     missing_sample_duration,
                 )
 
@@ -69,14 +111,14 @@ class Relay:
 
     async def start_receiving_task(self):
         if self.receiving_task:
-            logger.debug('Tried to set a new receiving task, but the task is running.')
+            logger.debug("Tried to set a new receiving task, but the task is running.")
             return
         self.receiving_task = asyncio.create_task(self.receive_gaze_sample())
 
     async def start_publishing_gaze(self):
         if self.publishing_gaze_task:
             logger.debug(
-                'Tried to set a new gaze publishing task, but the task is running.'
+                "Tried to set a new gaze publishing task, but the task is running."
             )
             return
         self.publishing_gaze_task = asyncio.create_task(self.publish_gaze_sample(10))
@@ -84,14 +126,19 @@ class Relay:
     async def start_publishing_event(self):
         if self.publishing_event_task:
             logger.debug(
-                'Tried to set new event publishing task, but the task is running.'
+                "Tried to set new event publishing task, but the task is running."
             )
             return
         self.publishing_event_task = asyncio.create_task(
             self.publish_event_from_queue()
         )
 
-    async def relay_receiver_to_publisher(self, time_sync_interval):
+    async def relay_receiver_to_publisher(self):
+        tasks = await self.initialise_tasks()
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        handle_done_pending_tasks(done, pending)
+
+    async def initialise_tasks(self) -> List["asyncio.Task[NoReturn]"]:
         await self.receiver.make_status_update_notifier()
         await self.start_receiving_task()
         await self.start_publishing_gaze()
@@ -102,33 +149,34 @@ class Relay:
             self.publishing_event_task,
         ]
         # start time sync task
-        if time_sync_interval:
+        if self._time_sync_interval:
             time_sync_task = asyncio.create_task(
                 send_events_in_interval(
-                    self.device_ip, self.device_port, time_sync_interval
+                    self.device_ip,
+                    self.device_port,
+                    self.session_id,
+                    self._time_sync_interval,
                 )
             )
             tasks.append(time_sync_task)
-
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        handle_done_pending_tasks(done, pending)
-        await self.receiver.cleanup()
+        return [t for t in tasks if t is not None]
 
 
 class DataReceiver:
-    def __init__(self, device_ip, device_port):
+    def __init__(self, device_ip: str, device_port: int):
         self.device_ip = device_ip
         self.device_port = device_port
-        self.notifier = None
-        self.gaze_sensor_url = None
-        self.event_queue = asyncio.Queue()
+        self.notifier: Optional[StatusUpdateNotifier] = None
+        self.gaze_sensor_url: Optional[str] = None
+        self.event_queue: asyncio.Queue[EventAdapter] = asyncio.Queue()
+        self.clock_offset_ns: int = 0
 
-    async def on_update(self, component):
+    async def on_update(self, component: Component):
         if isinstance(component, Sensor):
-            if component.sensor == 'gaze' and component.conn_type == 'DIRECT':
+            if component.sensor == "gaze" and component.conn_type == "DIRECT":
                 self.gaze_sensor_url = component.url
         elif isinstance(component, Event):
-            adapted_event = EventAdapter(component)
+            adapted_event = EventAdapter(component, self.clock_offset_ns)
             await self.event_queue.put(adapted_event)
 
     async def make_status_update_notifier(self):
@@ -136,18 +184,64 @@ class DataReceiver:
             self.notifier = StatusUpdateNotifier(device, callbacks=[self.on_update])
             await self.notifier.receive_updates_start()
 
+    async def estimate_clock_offset(self):
+        """Estimate the Companion-Device-to-Relay clock offset.
+
+        Uses the :py:mod:`Pupil Labs Time Echo Protocol
+        <pupil_labs.realtime_api.time_echo>` to measure the clock offset between the
+        Companion Device and the relay. The offset is used to transform incoming gaze
+        and event timestamps from Companion to relay time domain. If the Companion app
+        version does not support the time echo protocol or the clock offset estimation
+        fails, the relay will fall back to NTP-based time sync.
+        """
+        async with Device(self.device_ip, self.device_port) as device:
+            status = await device.get_status()
+
+            if status.phone.time_echo_port is None:
+                logger.warning(
+                    "Pupil Invisible Companion app is out-of-date and does not support "
+                    "accurate time sync! Relying on less accurate NTP time sync."
+                )
+                return
+            logger.debug(f"Device Time Echo port: {status.phone.time_echo_port}")
+
+            time_offset_estimator = TimeOffsetEstimator(
+                status.phone.ip, status.phone.time_echo_port
+            )
+            estimated_offset = await time_offset_estimator.estimate()
+            if estimated_offset is None:
+                logger.warning(
+                    "Estimating clock offset failed. Relying on less accurate NTP time "
+                    "sync."
+                )
+                return
+            self.clock_offset_ns = round(estimated_offset.time_offset_ms.mean * 1e6)
+            logger.info(f"Estimated clock offset: {self.clock_offset_ns:_} ns")
+
     async def cleanup(self):
-        await self.notifier.receive_updates_stop()
+        if self.notifier is not None:
+            await self.notifier.receive_updates_stop()
+
+
+class GazeAdapter:
+    def __init__(self, sample: GazeData, clock_offset_ns: int):
+        self.x = sample.x
+        self.y = sample.y
+        self.timestamp_unix_seconds = (
+            sample.timestamp_unix_seconds + clock_offset_ns * 1e-9
+        )
 
 
 class EventAdapter:
-    def __init__(self, sample):
+    def __init__(self, sample: Event, clock_offset_ns: int):
         self.name = sample.name
-        self.timestamp_unix_ns = sample.timestamp
-        self.timestamp_unix_seconds = self.timestamp_unix_ns * 1e-9
+        self.timestamp_unix_seconds = (sample.timestamp + clock_offset_ns) * 1e-9
 
 
-def handle_done_pending_tasks(done, pending):
+def handle_done_pending_tasks(
+    done: Iterable["asyncio.Task[NoReturn]"],
+    pending: Iterable["asyncio.Task[NoReturn]"],
+):
     for done_task in done:
         try:
             done_task.result()
@@ -163,17 +257,21 @@ def handle_done_pending_tasks(done, pending):
 
 
 # send events in intervals
-async def send_events_in_interval(device_ip, device_port, sec=60):
+async def send_events_in_interval(
+    device_ip: str, device_port: int, session_id: str, sec: int = 60
+):
     n_events_sent = 0
     while True:
         await send_timesync_event(
-            device_ip, device_port, f'lsl.time_sync.{n_events_sent}'
+            device_ip, device_port, f"lsl.time_sync.{session_id}.{n_events_sent}"
         )
         await asyncio.sleep(sec)
         n_events_sent += 1
-        logger.debug(f'sent time synchronization event no {n_events_sent}')
+        logger.debug(f"sent time synchronization event no {n_events_sent}")
 
 
-async def send_timesync_event(device_ip, device_port, message: str):
+async def send_timesync_event(device_ip: str, device_port: int, message: str):
     async with Device(device_ip, device_port) as device:
+        # NOTE: No need to set timestamp with clock offset. Device already timestamps
+        # events on reception in target time domain.
         await device.send_event(message)

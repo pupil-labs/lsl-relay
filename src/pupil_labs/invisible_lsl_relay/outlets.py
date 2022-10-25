@@ -1,30 +1,40 @@
 import logging
 import time
+from typing import Callable, Dict, List
 
 import pylsl as lsl
+from typing_extensions import Literal, Protocol
 
 from pupil_labs.invisible_lsl_relay import __version__
 from pupil_labs.invisible_lsl_relay.channels import (
+    PiChannel,
     pi_event_channels,
-    pi_extract_from_sample,
     pi_gaze_channels,
 )
 
-VERSION = __version__
+VERSION: str = __version__
+
+# lsl.cf_float32, lsl.cf_double64, lsl.cf_string, lsl.cf_int32, lsl.cf_int16,
+# lsl.cf_int8, lsl.cf_int64, lsl.cf_undefined
+LSLChannelFormatConstant = Literal[1, 2, 3, 4, 5, 6, 7, 0]
 
 logger = logging.getLogger(__name__)
+
+
+class Sample(Protocol):
+    timestamp_unix_seconds: float
+    "Unix-epoch timestamp in seconds"
 
 
 class PupilInvisibleOutlet:
     def __init__(
         self,
-        channel_func,
-        outlet_type,
-        outlet_format,
-        timestamp_query,
-        outlet_name_prefix,
-        outlet_uuid,
-        acquisition_info,
+        channel_func: Callable[[], List[PiChannel]],
+        outlet_type: str,
+        outlet_format: LSLChannelFormatConstant,
+        outlet_name_prefix: str,
+        outlet_uuid: str,
+        acquisition_info: Dict[str, str],
     ):
         self._outlet_uuid = outlet_uuid
         self._channels = channel_func()
@@ -36,12 +46,11 @@ class PupilInvisibleOutlet:
             outlet_name_prefix,
             acquisition_info,
         )
-        self._timestamp_query = timestamp_query
 
-    def push_sample_to_outlet(self, sample):
+    def push_sample_to_outlet(self, sample: Sample):
         try:
             sample_to_push = [chan.sample_query(sample) for chan in self._channels]
-            timestamp_to_push = self._timestamp_query(sample) - get_lsl_time_offset()
+            timestamp_to_push = sample.timestamp_unix_seconds - get_lsl_time_offset()
         except Exception as exc:
             logger.error(f"Error extracting from sample: {exc}")
             logger.debug(str(sample))
@@ -50,44 +59,62 @@ class PupilInvisibleOutlet:
 
 
 class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
-    def __init__(self, device_id, outlet_prefix=None, world_camera_serial=None):
+    def __init__(
+        self,
+        device_id: str,
+        outlet_prefix: str,
+        world_camera_serial: str,
+        session_id: str,
+        clock_offset_ns: int = 0,
+    ):
         PupilInvisibleOutlet.__init__(
             self,
             channel_func=pi_gaze_channels,
-            outlet_type='Gaze',
+            outlet_type="Gaze",
             outlet_format=lsl.cf_double64,
-            timestamp_query=pi_extract_from_sample('timestamp_unix_seconds'),
             outlet_name_prefix=outlet_prefix,
-            outlet_uuid=f'{device_id}_Gaze',
+            outlet_uuid=f"{device_id}_Gaze",
             acquisition_info=compose_acquisition_info(
-                version=VERSION, world_camera_serial=world_camera_serial
+                version=VERSION,
+                world_camera_serial=world_camera_serial,
+                session_id=session_id,
+                clock_offset_ns=clock_offset_ns,
             ),
         )
 
 
 class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
-    def __init__(self, device_id, outlet_prefix=None, world_camera_serial=None):
+    def __init__(
+        self,
+        device_id: str,
+        outlet_prefix: str,
+        world_camera_serial: str,
+        session_id: str,
+        clock_offset_ns: int = 0,
+    ):
         PupilInvisibleOutlet.__init__(
             self,
             channel_func=pi_event_channels,
-            outlet_type='Event',
+            outlet_type="Event",
             outlet_format=lsl.cf_string,
-            timestamp_query=pi_extract_from_sample('timestamp_unix_seconds'),
             outlet_name_prefix=outlet_prefix,
-            outlet_uuid=f'{device_id}_Event',
+            outlet_uuid=f"{device_id}_Event",
             acquisition_info=compose_acquisition_info(
-                version=VERSION, world_camera_serial=world_camera_serial
+                version=VERSION,
+                world_camera_serial=world_camera_serial,
+                session_id=session_id,
+                clock_offset_ns=clock_offset_ns,
             ),
         )
 
 
 def pi_create_outlet(
-    outlet_uuid,
-    channels,
-    outlet_type,
-    outlet_format,
-    outlet_name_prefix,
-    acquisition_info,
+    outlet_uuid: str,
+    channels: List[PiChannel],
+    outlet_type: str,
+    outlet_format: LSLChannelFormatConstant,
+    outlet_name_prefix: str,
+    acquisition_info: Dict[str, str],
 ):
     stream_info = pi_streaminfo(
         outlet_uuid,
@@ -101,12 +128,12 @@ def pi_create_outlet(
 
 
 def pi_streaminfo(
-    outlet_uuid,
-    channels,
+    outlet_uuid: str,
+    channels: List[PiChannel],
     type_name: str,
-    channel_format,
-    outlet_name_prefix,
-    acquisition_info,
+    channel_format: LSLChannelFormatConstant,
+    outlet_name_prefix: str,
+    acquisition_info: Dict[str, str],
 ):
     stream_info = lsl.StreamInfo(
         name=f"{outlet_name_prefix}_{type_name}",
@@ -128,11 +155,18 @@ def get_lsl_time_offset():
 
 
 def compose_acquisition_info(
-    version, world_camera_serial, manufacturer='Pupil Labs', model='Pupil Invisible'
-):
+    version: str,
+    world_camera_serial: str,
+    session_id: str,
+    manufacturer: str = "Pupil Labs",
+    model: str = "Pupil Invisible",
+    clock_offset_ns: int = 0,
+) -> Dict[str, str]:
     return {
-        'manufacturer': manufacturer,
-        'model': model,
-        'world_camera_serial': world_camera_serial,
-        'pupil_invisible_lsl_relay_version': version,
+        "manufacturer": manufacturer,
+        "model": model,
+        "world_camera_serial": world_camera_serial,
+        "pupil_invisible_lsl_relay_version": version,
+        "session_id": str(session_id),
+        "clock_offset_ns": str(clock_offset_ns),
     }
