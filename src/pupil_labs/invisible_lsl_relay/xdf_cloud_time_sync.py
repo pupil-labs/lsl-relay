@@ -1,8 +1,9 @@
 import logging
 import re
 import traceback
+from collections import defaultdict
 from pathlib import Path
-from typing import Collection, Dict, Iterable, NamedTuple
+from typing import Any, Collection, Dict, Iterable, NamedTuple
 
 import click
 import numpy as np
@@ -51,7 +52,14 @@ def main(path_to_xdf: Path, paths_to_exports: Collection[Path]):
 
 def align_and_save_data(path_to_xdf: Path, paths_to_cloud: Iterable[Path]):
     logging.info(f"Loading XDF events from {path_to_xdf}")
-    xdf_events = load_session_id_to_xdf_event_mapping(path_to_xdf)
+    try:
+        xdf_events = load_session_id_to_xdf_event_mapping(path_to_xdf)
+    except ValueError:
+        logger.error(
+            f"Could not extract any time alignments for {path_to_xdf.resolve()}. "
+            "No valid Pupil Invisible event streams found!"
+        )
+        return
     logging.debug(f"Extracted XDF events: {set(xdf_events.keys())}")
     for cloud_path in paths_to_cloud:
         logging.info(f"Loading session ids from {cloud_path}")
@@ -92,7 +100,15 @@ def load_session_id_to_xdf_event_mapping(path_to_xdf: Path) -> Dict[str, pd.Data
             session_id: str = x["info"]["desc"][0]["acquisition"][0]["session_id"][0]
             mapping[session_id] = _xdf_events_to_dataframe(x)
         except KeyError:
-            logger.debug(f"Skipping non-Pupil-Invisible stream {x['info']['desc']}")
+            logger.debug(
+                "Skipping non-Pupil-Invisible stream\n"
+                f"{_default_to_regular_dict(x['info']['desc'])}"
+            )
+        except IndexError:
+            logger.warning(
+                "Session id missing! Skipping incompatible Pupil Invisible stream\n"
+                f"{_default_to_regular_dict(x['info']['desc'])}"
+            )
 
     if not mapping:
         raise ValueError(
@@ -100,6 +116,14 @@ def load_session_id_to_xdf_event_mapping(path_to_xdf: Path) -> Dict[str, pd.Data
         )
 
     return mapping
+
+
+def _default_to_regular_dict(d: Any):
+    if isinstance(d, defaultdict):
+        d = {k: _default_to_regular_dict(v) for k, v in d.items()}
+    elif isinstance(d, list):
+        d = list(map(_default_to_regular_dict, d))
+    return d
 
 
 class CloudExportEvents(NamedTuple):

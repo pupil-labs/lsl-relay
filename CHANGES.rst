@@ -1,3 +1,7 @@
+3.0.2 (2022-11-09)
+##################
+- Gracefully handle xdf files without required time alignment information
+
 3.0.1 (2022-10-25)
 ##################
 - Detect missing dependencies and provide instructions on how to install them
