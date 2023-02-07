@@ -75,7 +75,6 @@ class TimeAlignmentModels:
 def perform_time_alignment(
     lsl_event_data: pd.DataFrame, cloud_event_data: pd.DataFrame, timestamp_label: str
 ) -> TimeAlignmentModels:
-
     cloud_event_data[timestamp_label] = cloud_event_data["timestamp [ns]"] * 1e-9
 
     cloud_to_lsl = _linear_time_mapper(
