@@ -91,7 +91,6 @@ def align_and_save_data(path_to_xdf: Path, paths_to_cloud: Iterable[Path]):
 
 
 def load_session_id_to_xdf_event_mapping(path_to_xdf: Path) -> Dict[str, pd.DataFrame]:
-
     mapping: Dict[str, pd.DataFrame] = {}
     data, _ = pyxdf.load_xdf(path_to_xdf, select_streams=[{"type": "Event"}])
 
@@ -198,7 +197,6 @@ class _PairedDataFrames(NamedTuple):
 def _filter_common_events(
     data_frames: _PairedDataFrames, column: str
 ) -> _PairedDataFrames:
-
     col_left = data_frames.left[column]
     col_right = data_frames.right[column]
 
