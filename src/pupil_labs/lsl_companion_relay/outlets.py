@@ -5,8 +5,8 @@ from typing import Callable, Dict, List
 import pylsl as lsl
 from typing_extensions import Literal, Protocol
 
-from pupil_labs.invisible_lsl_relay import __version__
-from pupil_labs.invisible_lsl_relay.channels import (
+from pupil_labs.lsl_companion_relay import __version__
+from pupil_labs.lsl_companion_relay.channels import (
     PiChannel,
     pi_event_channels,
     pi_gaze_channels,
@@ -26,7 +26,7 @@ class Sample(Protocol):
     "Unix-epoch timestamp in seconds"
 
 
-class PupilInvisibleOutlet:
+class PupilCompanionOutlet:
     def __init__(
         self,
         channel_func: Callable[[], List[PiChannel]],
@@ -58,7 +58,7 @@ class PupilInvisibleOutlet:
         self._outlet.push_sample(sample_to_push, timestamp_to_push)
 
 
-class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
+class PupilCompanionGazeOutlet(PupilCompanionOutlet):
     def __init__(
         self,
         device_id: str,
@@ -67,7 +67,7 @@ class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
         session_id: str,
         clock_offset_ns: int = 0,
     ):
-        PupilInvisibleOutlet.__init__(
+        PupilCompanionOutlet.__init__(
             self,
             channel_func=pi_gaze_channels,
             outlet_type="Gaze",
@@ -79,11 +79,12 @@ class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
                 world_camera_serial=world_camera_serial,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
+                # @TODO: add device model
             ),
         )
 
 
-class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
+class PupilCompanionEventOutlet(PupilCompanionOutlet):
     def __init__(
         self,
         device_id: str,
@@ -92,7 +93,7 @@ class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
         session_id: str,
         clock_offset_ns: int = 0,
     ):
-        PupilInvisibleOutlet.__init__(
+        PupilCompanionOutlet.__init__(
             self,
             channel_func=pi_event_channels,
             outlet_type="Event",
@@ -104,6 +105,7 @@ class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
                 world_camera_serial=world_camera_serial,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
+                # @TODO: add device model
             ),
         )
 
@@ -159,14 +161,14 @@ def compose_acquisition_info(
     world_camera_serial: str,
     session_id: str,
     manufacturer: str = "Pupil Labs",
-    model: str = "Pupil Invisible",
+    model: str = "Pupil Labs Device",
     clock_offset_ns: int = 0,
 ) -> Dict[str, str]:
     return {
         "manufacturer": manufacturer,
         "model": model,
         "world_camera_serial": world_camera_serial,
-        "pupil_invisible_lsl_relay_version": version,
+        "pupil_labs_lsl_companion_relay_version": version,
         "session_id": str(session_id),
         "clock_offset_ns": str(clock_offset_ns),
     }

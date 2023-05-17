@@ -8,7 +8,7 @@ from pupil_labs.realtime_api.models import Component, Event, Sensor
 from pupil_labs.realtime_api.streaming import GazeData
 from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
-from pupil_labs.invisible_lsl_relay import outlets
+from pupil_labs.lsl_companion_relay import outlets
 
 logger = logging.getLogger(__name__)
 logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")
@@ -53,14 +53,14 @@ class Relay:
         self.device_port = device_port
         self.receiver = receiver
         self.session_id = str(uuid.uuid4())
-        self.gaze_outlet = outlets.PupilInvisibleGazeOutlet(
+        self.gaze_outlet = outlets.PupilCompanionGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
         )
-        self.event_outlet = outlets.PupilInvisibleEventOutlet(
+        self.event_outlet = outlets.PupilCompanionEventOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
             world_camera_serial=world_camera_serial,
@@ -199,7 +199,7 @@ class DataReceiver:
 
             if status.phone.time_echo_port is None:
                 logger.warning(
-                    "Pupil Invisible Companion app is out-of-date and does not support "
+                    "Pupil Companion app is out-of-date and does not support "
                     "accurate time sync! Relying on less accurate NTP time sync."
                 )
                 return

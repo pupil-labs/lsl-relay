@@ -7,7 +7,7 @@ API
 CLI
 ===
 
-.. automodule:: pupil_labs.invisible_lsl_relay.cli
+.. automodule:: pupil_labs.lsl_companion_relay.cli
     :members:
     :undoc-members:
     :show-inheritance:
@@ -15,7 +15,7 @@ CLI
 Relay
 ===========
 
-.. automodule:: pupil_labs.invisible_lsl_relay.relay
+.. automodule:: pupil_labs.lsl_companion_relay.relay
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,7 +23,7 @@ Relay
 Channels
 ===========
 
-.. automodule:: pupil_labs.invisible_lsl_relay.channels
+.. automodule:: pupil_labs.lsl_companion_relay.channels
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +31,7 @@ Channels
 Outlets
 ==========
 
-.. automodule:: pupil_labs.invisible_lsl_relay.outlets
+.. automodule:: pupil_labs.lsl_companion_relay.outlets
     :members:
     :undoc-members:
     :show-inheritance:

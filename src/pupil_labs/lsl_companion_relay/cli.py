@@ -13,7 +13,7 @@ from rich.live import Live
 from rich.logging import RichHandler
 from rich.table import Table
 
-from pupil_labs.invisible_lsl_relay import relay
+from pupil_labs.lsl_companion_relay import relay
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ def evaluate_user_input(
 @group()
 def print_device_list(network: Network, n_reload: int):
     yield ""
-    table = Table(title="Available Pupil Invisible Devices")
+    table = Table(title="Available Pupil Companion Devices")
     table.add_column("Index", style="blue")
     table.add_column("Address")
     table.add_column("Name")
@@ -140,6 +140,7 @@ def print_device_list(network: Network, n_reload: int):
         ip = device_info.addresses[0]
         port = device_info.port
         full_name = device_info.name
+        print(f"Full device name:'{full_name}'")
         name = full_name.split(":")[1]
         table.add_row(str(device_index), f"{ip}:{port}", name)
     yield table
@@ -196,19 +197,20 @@ def epoch_is(year: int, month: int, day: int) -> bool:
 )
 @click.option(
     "--log_file_name",
-    default="pi_lsl_relay.log",
+    default="pupil_labs_lsl_companion_relay.log",
     help="Name and path where the log file is saved.",
 )
 @click.option(
     "--device_address",
-    help="Specify the ip address and port of the pupil invisible device "
+    help="Specify the ip address and port of the pupil companion device "
     "you want to relay.",
 )
 @click.option(
     "--outlet_prefix",
-    default="pupil_invisible",
+    default="pupil_labs_companion",
     help="Pass optional names to the lsl outlets.",
 )
+
 def relay_setup_and_start(
     device_address: str,
     outlet_prefix: str,

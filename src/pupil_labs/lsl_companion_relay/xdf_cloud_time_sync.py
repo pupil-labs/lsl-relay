@@ -17,7 +17,7 @@ except ImportError as err:
     install()
     raise ImportError(
         "Some `lsl_relay_time_alignment` dependencies are missing. Install them via\n\t"
-        "\n\n\tpip install pupil-invisible-lsl-relay[pupil_cloud_alignment]\n"
+        "\n\n\tpip install pupil-labs-lsl-companion_relay[pupil_cloud_alignment]\n"
     ) from err
 
 from .cli import logger_setup
@@ -57,7 +57,7 @@ def align_and_save_data(path_to_xdf: Path, paths_to_cloud: Iterable[Path]):
     except ValueError:
         logger.error(
             f"Could not extract any time alignments for {path_to_xdf.resolve()}. "
-            "No valid Pupil Invisible event streams found!"
+            "No valid Pupil Companion event streams found!"
         )
         return
     logging.debug(f"Extracted XDF events: {set(xdf_events.keys())}")
@@ -100,18 +100,18 @@ def load_session_id_to_xdf_event_mapping(path_to_xdf: Path) -> Dict[str, pd.Data
             mapping[session_id] = _xdf_events_to_dataframe(x)
         except KeyError:
             logger.debug(
-                "Skipping non-Pupil-Invisible stream\n"
+                "Skipping non-Pupil-Companion stream\n"
                 f"{_default_to_regular_dict(x['info']['desc'])}"
             )
         except IndexError:
             logger.warning(
-                "Session id missing! Skipping incompatible Pupil Invisible stream\n"
+                "Session id missing! Skipping incompatible Pupil Companion stream\n"
                 f"{_default_to_regular_dict(x['info']['desc'])}"
             )
 
     if not mapping:
         raise ValueError(
-            "xdf file does not contain any valid Pupil Invisible event streams"
+            "xdf file does not contain any valid Pupil Companion event streams"
         )
 
     return mapping

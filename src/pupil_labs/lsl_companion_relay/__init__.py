@@ -6,7 +6,7 @@ except ImportError:
     from importlib_metadata import PackageNotFoundError, version
 
 try:
-    __version__: str = version("pupil-invisible-lsl-relay")
+    __version__: str = version("lsl-companion-relay")
 except PackageNotFoundError:
     __version__ = "unknown"
 

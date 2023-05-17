@@ -3,7 +3,7 @@
 ************************************************************
 Performing accurate time synchronization between two devices
 ************************************************************
-You can use lsl to synchronize two Pupil Invisible Devices.
+You can use lsl to synchronize two Pupil Labs Companion Devices.
 
 
 Description of the Choreography

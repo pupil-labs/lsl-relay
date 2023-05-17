@@ -6,7 +6,7 @@ from sklearn import linear_model
 
 # import xdf data
 # define the name of the stream of interest
-stream_name = "pupil_invisible_Event"
+stream_name = "pupil_companion_Event"
 
 # load xdf data
 path_to_recording = "./lsl_recordings/recorded_xdf_file.xdf"

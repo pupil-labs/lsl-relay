@@ -21,7 +21,7 @@
    :target: https://blog.jaraco.com/skeleton
 
 *************************
-Pupil Invisible LSL Relay
+Pupil Labs LSL Companion Relay
 *************************
 
 - `Documentation <https://pupil-invisible-lsl-relay.readthedocs.io/>`_
