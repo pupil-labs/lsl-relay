@@ -5,8 +5,8 @@ from typing import Callable, Dict, List
 import pylsl as lsl
 from typing_extensions import Literal, Protocol
 
-from pupil_labs.lsl_companion_relay import __version__
-from pupil_labs.lsl_companion_relay.channels import (
+from pupil_labs.pl_companion_lsl_relay import __version__
+from pupil_labs.pl_companion_lsl_relay.channels import (
     PiChannel,
     pi_event_channels,
     pi_gaze_channels,
@@ -168,7 +168,7 @@ def compose_acquisition_info(
         "manufacturer": manufacturer,
         "model": model,
         "world_camera_serial": world_camera_serial,
-        "pupil_labs_lsl_companion_relay_version": version,
+        "pl_companion_lsl_relay_version": version,
         "session_id": str(session_id),
         "clock_offset_ns": str(clock_offset_ns),
     }

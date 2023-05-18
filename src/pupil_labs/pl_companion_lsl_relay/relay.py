@@ -8,7 +8,7 @@ from pupil_labs.realtime_api.models import Component, Event, Sensor
 from pupil_labs.realtime_api.streaming import GazeData
 from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
-from pupil_labs.lsl_companion_relay import outlets
+from pupil_labs.pl_companion_lsl_relay import outlets
 
 logger = logging.getLogger(__name__)
 logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")

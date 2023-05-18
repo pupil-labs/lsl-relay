@@ -57,8 +57,8 @@ intersphinx_mapping = {
 html_theme = "furo"
 autosummary_generate = True
 
-project = "Pupil Labs LSL Companion Relay"
-release = import_version("lsl_companion_relay")
+project = "Pupil Labs Companion LSL Relay"
+release = import_version("pl_companion_lsl_relay")
 # for example take major/minor
 version = ".".join(release.split(".")[:2])
 html_title = f"{project} {release}"

@@ -19,7 +19,7 @@ Setup
 
 #. Install the lsl relay, including the extra dependencies via::
 
-      pip install pupil-labs-lsl-companion-relay[pupil_cloud_alignment]
+      pip install pl-companion-lsl-relay[pupil_cloud_alignment]
 
 #. Start the lsl relay of your Pupil device.
 

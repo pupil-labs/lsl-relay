@@ -1,4 +1,4 @@
-name: pupil-labs-lsl-companion-relay-conda
+name: pl-companion-lsl-relay-conda
 channels:
   - conda-forge
 dependencies:
