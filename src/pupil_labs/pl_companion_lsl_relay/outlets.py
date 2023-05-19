@@ -7,9 +7,9 @@ from typing_extensions import Literal, Protocol
 
 from pupil_labs.pl_companion_lsl_relay import __version__
 from pupil_labs.pl_companion_lsl_relay.channels import (
-    PiChannel,
-    pi_event_channels,
-    pi_gaze_channels,
+    CompanionChannel,
+    companion_event_channels,
+    companion_gaze_channels,
 )
 
 VERSION: str = __version__
@@ -29,7 +29,7 @@ class Sample(Protocol):
 class PupilCompanionOutlet:
     def __init__(
         self,
-        channel_func: Callable[[], List[PiChannel]],
+        channel_func: Callable[[], List[CompanionChannel]],
         outlet_type: str,
         outlet_format: LSLChannelFormatConstant,
         outlet_name_prefix: str,
@@ -69,7 +69,7 @@ class PupilCompanionGazeOutlet(PupilCompanionOutlet):
     ):
         PupilCompanionOutlet.__init__(
             self,
-            channel_func=pi_gaze_channels,
+            channel_func=companion_gaze_channels,
             outlet_type="Gaze",
             outlet_format=lsl.cf_double64,
             outlet_name_prefix=outlet_prefix,
@@ -95,7 +95,7 @@ class PupilCompanionEventOutlet(PupilCompanionOutlet):
     ):
         PupilCompanionOutlet.__init__(
             self,
-            channel_func=pi_event_channels,
+            channel_func=companion_event_channels,
             outlet_type="Event",
             outlet_format=lsl.cf_string,
             outlet_name_prefix=outlet_prefix,
@@ -112,7 +112,7 @@ class PupilCompanionEventOutlet(PupilCompanionOutlet):
 
 def pi_create_outlet(
     outlet_uuid: str,
-    channels: List[PiChannel],
+    channels: List[CompanionChannel],
     outlet_type: str,
     outlet_format: LSLChannelFormatConstant,
     outlet_name_prefix: str,
@@ -131,7 +131,7 @@ def pi_create_outlet(
 
 def pi_streaminfo(
     outlet_uuid: str,
-    channels: List[PiChannel],
+    channels: List[CompanionChannel],
     type_name: str,
     channel_format: LSLChannelFormatConstant,
     outlet_name_prefix: str,
