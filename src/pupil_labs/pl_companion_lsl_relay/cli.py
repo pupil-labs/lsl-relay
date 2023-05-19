@@ -30,7 +30,7 @@ async def main_async(
         else:
             discoverer = DeviceDiscoverer(timeout)
             device_ip_address, device_port = await discoverer.get_device_from_list()
-        device_identifier, world_camera_serial = await get_device_info_for_outlet(
+        device_identifier, module_serial = await get_device_info_for_outlet(
             device_ip_address, device_port
         )
         await relay.Relay.run(
@@ -38,7 +38,7 @@ async def main_async(
             device_port=device_port,
             device_identifier=device_identifier,
             outlet_prefix=outlet_prefix,
-            world_camera_serial=world_camera_serial,
+            module_serial=module_serial,
             time_sync_interval=time_sync_interval,
         )
     except TimeoutError:
@@ -99,10 +99,16 @@ async def get_device_info_for_outlet(device_ip: str, device_port: int):
                 "is connected to the same network."
             )
             raise exc
-        if not status.hardware.world_camera_serial:
-            logger.warning("The world camera is not connected.")
-        world_camera_serial = status.hardware.world_camera_serial or "default"
-        return status.phone.device_id, world_camera_serial
+
+        if hasattr(status.hardware, 'module_serial') and status.hardware.module_serial:
+            module_serial = status.hardware.module_serial
+        else:
+            if not status.hardware.world_camera_serial:
+                logger.warning("The world camera is not connected.")
+
+            module_serial = status.hardware.world_camera_serial or "default"
+
+        return status.phone.device_id, module_serial
 
 
 async def input_async():
@@ -140,7 +146,6 @@ def print_device_list(network: Network, n_reload: int):
         ip = device_info.addresses[0]
         port = device_info.port
         full_name = device_info.name
-        print(f"Full device name:'{full_name}'")
         name = full_name.split(":")[1]
         table.add_row(str(device_index), f"{ip}:{port}", name)
     yield table

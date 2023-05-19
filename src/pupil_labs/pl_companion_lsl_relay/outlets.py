@@ -63,7 +63,7 @@ class PupilCompanionGazeOutlet(PupilCompanionOutlet):
         self,
         device_id: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        module_serial: str,
         session_id: str,
         clock_offset_ns: int = 0,
     ):
@@ -76,7 +76,7 @@ class PupilCompanionGazeOutlet(PupilCompanionOutlet):
             outlet_uuid=f"{device_id}_Gaze",
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
-                world_camera_serial=world_camera_serial,
+                module_serial=module_serial,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
                 # @TODO: add device model
@@ -89,7 +89,7 @@ class PupilCompanionEventOutlet(PupilCompanionOutlet):
         self,
         device_id: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        module_serial: str,
         session_id: str,
         clock_offset_ns: int = 0,
     ):
@@ -102,7 +102,7 @@ class PupilCompanionEventOutlet(PupilCompanionOutlet):
             outlet_uuid=f"{device_id}_Event",
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
-                world_camera_serial=world_camera_serial,
+                module_serial=module_serial,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
                 # @TODO: add device model
@@ -158,7 +158,7 @@ def get_lsl_time_offset():
 
 def compose_acquisition_info(
     version: str,
-    world_camera_serial: str,
+    module_serial: str,
     session_id: str,
     manufacturer: str = "Pupil Labs",
     model: str = "Pupil Labs Device",
@@ -167,7 +167,7 @@ def compose_acquisition_info(
     return {
         "manufacturer": manufacturer,
         "model": model,
-        "world_camera_serial": world_camera_serial,
+        "module_serial": module_serial,
         "pl_companion_lsl_relay_version": version,
         "session_id": str(session_id),
         "clock_offset_ns": str(clock_offset_ns),

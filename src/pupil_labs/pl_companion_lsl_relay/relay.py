@@ -22,7 +22,7 @@ class Relay:
         device_port: int,
         device_identifier: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        module_serial: str,
         time_sync_interval: int,
     ):
         receiver = DataReceiver(device_ip, device_port)
@@ -33,7 +33,7 @@ class Relay:
             receiver,
             device_identifier,
             outlet_prefix,
-            world_camera_serial,
+            module_serial,
             time_sync_interval,
         )
         await relay.relay_receiver_to_publisher()
@@ -46,7 +46,7 @@ class Relay:
         receiver: "DataReceiver",
         device_identifier: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        module_serial: str,
         time_sync_interval: int,
     ):
         self.device_ip = device_ip
@@ -56,14 +56,14 @@ class Relay:
         self.gaze_outlet = outlets.PupilCompanionGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
-            world_camera_serial=world_camera_serial,
+            module_serial=module_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
         )
         self.event_outlet = outlets.PupilCompanionEventOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
-            world_camera_serial=world_camera_serial,
+            module_serial=module_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
         )
