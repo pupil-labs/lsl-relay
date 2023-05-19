@@ -63,6 +63,7 @@ class PupilCompanionGazeOutlet(PupilCompanionOutlet):
         self,
         device_id: str,
         outlet_prefix: str,
+        model: str,
         module_serial: str,
         session_id: str,
         clock_offset_ns: int = 0,
@@ -77,9 +78,9 @@ class PupilCompanionGazeOutlet(PupilCompanionOutlet):
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
                 module_serial=module_serial,
+                model=model,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
-                # @TODO: add device model
             ),
         )
 
@@ -89,6 +90,7 @@ class PupilCompanionEventOutlet(PupilCompanionOutlet):
         self,
         device_id: str,
         outlet_prefix: str,
+        model: str,
         module_serial: str,
         session_id: str,
         clock_offset_ns: int = 0,
@@ -105,7 +107,7 @@ class PupilCompanionEventOutlet(PupilCompanionOutlet):
                 module_serial=module_serial,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
-                # @TODO: add device model
+                model=model,
             ),
         )
 

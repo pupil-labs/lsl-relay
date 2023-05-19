@@ -30,7 +30,7 @@ async def main_async(
         else:
             discoverer = DeviceDiscoverer(timeout)
             device_ip_address, device_port = await discoverer.get_device_from_list()
-        device_identifier, module_serial = await get_device_info_for_outlet(
+        device_identifier, model, module_serial = await get_device_info_for_outlet(
             device_ip_address, device_port
         )
         await relay.Relay.run(
@@ -38,6 +38,7 @@ async def main_async(
             device_port=device_port,
             device_identifier=device_identifier,
             outlet_prefix=outlet_prefix,
+            model=model,
             module_serial=module_serial,
             time_sync_interval=time_sync_interval,
         )
@@ -108,7 +109,14 @@ async def get_device_info_for_outlet(device_ip: str, device_port: int):
 
             module_serial = status.hardware.world_camera_serial or "default"
 
-        return status.phone.device_id, module_serial
+        if status.hardware.version == '1.0':
+            model = 'Pupil Invisible'
+        elif status.hardware.version == '2.0':
+            model = 'Neon'
+        else:
+            model = 'Unknown'
+
+        return status.phone.device_id, model, module_serial
 
 
 async def input_async():

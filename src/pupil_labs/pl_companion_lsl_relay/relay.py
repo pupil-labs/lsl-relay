@@ -22,6 +22,7 @@ class Relay:
         device_port: int,
         device_identifier: str,
         outlet_prefix: str,
+        model: str,
         module_serial: str,
         time_sync_interval: int,
     ):
@@ -33,6 +34,7 @@ class Relay:
             receiver,
             device_identifier,
             outlet_prefix,
+            model,
             module_serial,
             time_sync_interval,
         )
@@ -46,6 +48,7 @@ class Relay:
         receiver: "DataReceiver",
         device_identifier: str,
         outlet_prefix: str,
+        model: str,
         module_serial: str,
         time_sync_interval: int,
     ):
@@ -56,6 +59,7 @@ class Relay:
         self.gaze_outlet = outlets.PupilCompanionGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
+            model=model,
             module_serial=module_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
@@ -63,6 +67,7 @@ class Relay:
         self.event_outlet = outlets.PupilCompanionEventOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
+            model=model,
             module_serial=module_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
