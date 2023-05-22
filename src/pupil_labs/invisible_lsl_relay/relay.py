@@ -2,6 +2,7 @@ import asyncio
 import logging
 import uuid
 from typing import Iterable, List, NoReturn, Optional
+from warnings import warn
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
 from pupil_labs.realtime_api.models import Component, Event, Sensor
@@ -12,8 +13,7 @@ from pupil_labs.invisible_lsl_relay import outlets
 
 logger = logging.getLogger(__name__)
 logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")
-
-
+warn("This package has been superseded by pl-companion-lsl-relay.", DeprecationWarning)
 class Relay:
     @classmethod
     async def run(

@@ -4,9 +4,12 @@ import traceback
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Collection, Dict, Iterable, NamedTuple
+from warnings import warn
 
 import click
 import numpy as np
+
+warn("This package has been superseded by pl-companion-lsl-relay.", DeprecationWarning)
 
 try:
     import pandas as pd

@@ -8,6 +8,9 @@ import pandas as pd
 from sklearn import linear_model
 from typing_extensions import Self, TypedDict
 
+from warnings import warn
+
+warn("This package has been superseded by pl-companion-lsl-relay.", DeprecationWarning)
 
 class ModelParameters(TypedDict):
     intercept: float

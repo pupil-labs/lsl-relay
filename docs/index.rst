@@ -2,8 +2,11 @@
 Pupil Invisible LSL Relay
 *************************
 
+**DEPRECATED**: this module has been superseded by `pl-companion-lsl-relay <https://github.com/pupil-labs/pl-companion-lsl-relay>`_.
+
 The Pupil Invisible LSL Relay (Relay) allows you to stream gaze and event data from your
 Pupil Invisible device to the `labstreaminglayer <https://github.com/sccn/labstreaminglayer>`_ (LSL).
+
 
 Install and Usage
 ==================

@@ -3,6 +3,8 @@ from typing import Any, Callable, Dict, List
 import pylsl
 from typing_extensions import Literal, Protocol
 
+from warnings import warn
+warn("This package has been superseded by pl-companion-lsl-relay.", DeprecationWarning)
 
 class Gaze(Protocol):
     x: float

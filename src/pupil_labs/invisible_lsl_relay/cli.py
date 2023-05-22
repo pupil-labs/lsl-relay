@@ -3,6 +3,7 @@ import concurrent.futures
 import logging
 import time
 from typing import Optional, Sequence, Union
+from warnings import warn
 
 import click
 from pupil_labs.realtime_api.device import Device
@@ -16,7 +17,7 @@ from rich.table import Table
 from pupil_labs.invisible_lsl_relay import relay
 
 logger = logging.getLogger(__name__)
-
+warn("This package has been superseded by pl-companion-lsl-relay.", DeprecationWarning)
 
 async def main_async(
     device_address: Optional[str] = None,
@@ -218,6 +219,7 @@ def relay_setup_and_start(
 ):
     try:
         logger_setup(log_file_name)
+        logger.warn("This package has been superseded by pl-companion-lsl-relay.")
 
         # check epoch time
         assert epoch_is(

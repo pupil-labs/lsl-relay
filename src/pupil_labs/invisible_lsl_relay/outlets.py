@@ -1,6 +1,7 @@
 import logging
 import time
 from typing import Callable, Dict, List
+from warnings import warn
 
 import pylsl as lsl
 from typing_extensions import Literal, Protocol
@@ -19,6 +20,7 @@ VERSION: str = __version__
 LSLChannelFormatConstant = Literal[1, 2, 3, 4, 5, 6, 7, 0]
 
 logger = logging.getLogger(__name__)
+warn("This package has been superseded by pl-companion-lsl-relay.", DeprecationWarning)
 
 
 class Sample(Protocol):

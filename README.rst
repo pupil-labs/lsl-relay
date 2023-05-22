@@ -24,4 +24,6 @@
 Pupil Invisible LSL Relay
 *************************
 
+DEPRECATED: this module has been superseded by `pl-companion-lsl-relay <https://github.com>`_.
+
 - `Documentation <https://pupil-invisible-lsl-relay.readthedocs.io/>`_
