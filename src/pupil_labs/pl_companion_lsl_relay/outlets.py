@@ -169,7 +169,7 @@ def compose_acquisition_info(
     return {
         "manufacturer": manufacturer,
         "model": model,
-        "module_serial": module_serial,
+        "serial_number": module_serial,
         "pl_companion_lsl_relay_version": version,
         "session_id": str(session_id),
         "clock_offset_ns": str(clock_offset_ns),
