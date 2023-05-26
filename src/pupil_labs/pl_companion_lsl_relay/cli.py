@@ -101,7 +101,7 @@ async def get_device_info_for_outlet(device_ip: str, device_port: int):
             )
             raise exc
 
-        if hasattr(status.hardware, 'module_serial') and status.hardware.module_serial:
+        if hasattr(status.hardware, "module_serial") and status.hardware.module_serial:
             module_serial = status.hardware.module_serial
         else:
             if not status.hardware.world_camera_serial:
@@ -109,12 +109,12 @@ async def get_device_info_for_outlet(device_ip: str, device_port: int):
 
             module_serial = status.hardware.world_camera_serial or "default"
 
-        if status.hardware.version == '1.0':
-            model = 'Pupil Invisible'
-        elif status.hardware.version == '2.0':
-            model = 'Neon'
+        if status.hardware.version == "1.0":
+            model = "Pupil Invisible"
+        elif status.hardware.version == "2.0":
+            model = "Neon"
         else:
-            model = 'Unknown'
+            model = "Unknown"
 
         return status.phone.device_id, model, module_serial
 
@@ -223,7 +223,6 @@ def epoch_is(year: int, month: int, day: int) -> bool:
     default="pl_companion",
     help="Pass optional names to the lsl outlets.",
 )
-
 def relay_setup_and_start(
     device_address: str,
     outlet_prefix: str,
