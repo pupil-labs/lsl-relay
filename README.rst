@@ -21,7 +21,7 @@
    :target: https://blog.jaraco.com/skeleton
 
 *************************
-Pupil Labs Companion LSL Relay
+Pupil Labs LSL Relay for Neon and Pupil Invisible
 *************************
 
 - `Documentation <https://pupil-invisible-lsl-relay.readthedocs.io/>`_
