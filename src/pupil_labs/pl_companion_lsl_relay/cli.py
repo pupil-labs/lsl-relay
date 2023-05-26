@@ -13,7 +13,7 @@ from rich.live import Live
 from rich.logging import RichHandler
 from rich.table import Table
 
-from pupil_labs.invisible_lsl_relay import relay
+from pupil_labs.pl_companion_lsl_relay import relay
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ async def main_async(
         else:
             discoverer = DeviceDiscoverer(timeout)
             device_ip_address, device_port = await discoverer.get_device_from_list()
-        device_identifier, world_camera_serial = await get_device_info_for_outlet(
+        device_identifier, model, module_serial = await get_device_info_for_outlet(
             device_ip_address, device_port
         )
         await relay.Relay.run(
@@ -38,7 +38,8 @@ async def main_async(
             device_port=device_port,
             device_identifier=device_identifier,
             outlet_prefix=outlet_prefix,
-            world_camera_serial=world_camera_serial,
+            model=model,
+            module_serial=module_serial,
             time_sync_interval=time_sync_interval,
         )
     except TimeoutError:
@@ -99,10 +100,23 @@ async def get_device_info_for_outlet(device_ip: str, device_port: int):
                 "is connected to the same network."
             )
             raise exc
-        if not status.hardware.world_camera_serial:
-            logger.warning("The world camera is not connected.")
-        world_camera_serial = status.hardware.world_camera_serial or "default"
-        return status.phone.device_id, world_camera_serial
+
+        if hasattr(status.hardware, "module_serial") and status.hardware.module_serial:
+            module_serial = status.hardware.module_serial
+        else:
+            if not status.hardware.world_camera_serial:
+                logger.warning("The world camera is not connected.")
+
+            module_serial = status.hardware.world_camera_serial or "default"
+
+        if status.hardware.version == "1.0":
+            model = "Pupil Invisible"
+        elif status.hardware.version == "2.0":
+            model = "Neon"
+        else:
+            model = "Unknown"
+
+        return status.phone.device_id, model, module_serial
 
 
 async def input_async():
@@ -132,7 +146,7 @@ def evaluate_user_input(
 @group()
 def print_device_list(network: Network, n_reload: int):
     yield ""
-    table = Table(title="Available Pupil Invisible Devices")
+    table = Table(title="Available Pupil Companion Devices")
     table.add_column("Index", style="blue")
     table.add_column("Address")
     table.add_column("Name")
@@ -196,17 +210,17 @@ def epoch_is(year: int, month: int, day: int) -> bool:
 )
 @click.option(
     "--log_file_name",
-    default="pi_lsl_relay.log",
+    default="pl_companion_lsl_relay.log",
     help="Name and path where the log file is saved.",
 )
 @click.option(
     "--device_address",
-    help="Specify the ip address and port of the pupil invisible device "
+    help="Specify the ip address and port of the pupil companion device "
     "you want to relay.",
 )
 @click.option(
     "--outlet_prefix",
-    default="pupil_invisible",
+    default="pl_companion",
     help="Pass optional names to the lsl outlets.",
 )
 def relay_setup_and_start(

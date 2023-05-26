@@ -5,11 +5,11 @@ from typing import Callable, Dict, List
 import pylsl as lsl
 from typing_extensions import Literal, Protocol
 
-from pupil_labs.invisible_lsl_relay import __version__
-from pupil_labs.invisible_lsl_relay.channels import (
-    PiChannel,
-    pi_event_channels,
-    pi_gaze_channels,
+from pupil_labs.pl_companion_lsl_relay import __version__
+from pupil_labs.pl_companion_lsl_relay.channels import (
+    CompanionChannel,
+    companion_event_channels,
+    companion_gaze_channels,
 )
 
 VERSION: str = __version__
@@ -26,10 +26,10 @@ class Sample(Protocol):
     "Unix-epoch timestamp in seconds"
 
 
-class PupilInvisibleOutlet:
+class PupilCompanionOutlet:
     def __init__(
         self,
-        channel_func: Callable[[], List[PiChannel]],
+        channel_func: Callable[[], List[CompanionChannel]],
         outlet_type: str,
         outlet_format: LSLChannelFormatConstant,
         outlet_name_prefix: str,
@@ -58,59 +58,63 @@ class PupilInvisibleOutlet:
         self._outlet.push_sample(sample_to_push, timestamp_to_push)
 
 
-class PupilInvisibleGazeOutlet(PupilInvisibleOutlet):
+class PupilCompanionGazeOutlet(PupilCompanionOutlet):
     def __init__(
         self,
         device_id: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        model: str,
+        module_serial: str,
         session_id: str,
         clock_offset_ns: int = 0,
     ):
-        PupilInvisibleOutlet.__init__(
+        PupilCompanionOutlet.__init__(
             self,
-            channel_func=pi_gaze_channels,
+            channel_func=companion_gaze_channels,
             outlet_type="Gaze",
             outlet_format=lsl.cf_double64,
             outlet_name_prefix=outlet_prefix,
             outlet_uuid=f"{device_id}_Gaze",
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
-                world_camera_serial=world_camera_serial,
+                module_serial=module_serial,
+                model=model,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
             ),
         )
 
 
-class PupilInvisibleEventOutlet(PupilInvisibleOutlet):
+class PupilCompanionEventOutlet(PupilCompanionOutlet):
     def __init__(
         self,
         device_id: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        model: str,
+        module_serial: str,
         session_id: str,
         clock_offset_ns: int = 0,
     ):
-        PupilInvisibleOutlet.__init__(
+        PupilCompanionOutlet.__init__(
             self,
-            channel_func=pi_event_channels,
+            channel_func=companion_event_channels,
             outlet_type="Event",
             outlet_format=lsl.cf_string,
             outlet_name_prefix=outlet_prefix,
             outlet_uuid=f"{device_id}_Event",
             acquisition_info=compose_acquisition_info(
                 version=VERSION,
-                world_camera_serial=world_camera_serial,
+                module_serial=module_serial,
                 session_id=session_id,
                 clock_offset_ns=clock_offset_ns,
+                model=model,
             ),
         )
 
 
 def pi_create_outlet(
     outlet_uuid: str,
-    channels: List[PiChannel],
+    channels: List[CompanionChannel],
     outlet_type: str,
     outlet_format: LSLChannelFormatConstant,
     outlet_name_prefix: str,
@@ -129,7 +133,7 @@ def pi_create_outlet(
 
 def pi_streaminfo(
     outlet_uuid: str,
-    channels: List[PiChannel],
+    channels: List[CompanionChannel],
     type_name: str,
     channel_format: LSLChannelFormatConstant,
     outlet_name_prefix: str,
@@ -156,17 +160,17 @@ def get_lsl_time_offset():
 
 def compose_acquisition_info(
     version: str,
-    world_camera_serial: str,
+    module_serial: str,
     session_id: str,
     manufacturer: str = "Pupil Labs",
-    model: str = "Pupil Invisible",
+    model: str = "Pupil Labs Device",
     clock_offset_ns: int = 0,
 ) -> Dict[str, str]:
     return {
         "manufacturer": manufacturer,
         "model": model,
-        "world_camera_serial": world_camera_serial,
-        "pupil_invisible_lsl_relay_version": version,
+        "serial_number": module_serial,
+        "pl_companion_lsl_relay_version": version,
         "session_id": str(session_id),
         "clock_offset_ns": str(clock_offset_ns),
     }

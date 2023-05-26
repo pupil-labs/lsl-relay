@@ -6,7 +6,9 @@ import seaborn as sns
 from rich import print
 from rich.traceback import install
 
-from pupil_labs.invisible_lsl_relay.linear_time_model import TimeAlignmentModels
+from pupil_labs.pl_companion_lsl_relay.linear_time_model import TimeAlignmentModels
+
+time_domain_key = "Pupil Companion Device"
 
 install()
 sns.set(font_scale=1.5)
@@ -28,7 +30,7 @@ for path, df in companion_device_dfs.items():
     ill_max = df.illuminance.max()
     df["illuminance (normalized)"] = (df.illuminance - ill_min) / (ill_max - ill_min)
 
-    df["time domain"] = "Pupil Invisible Companion"
+    df["time domain"] = time_domain_key
 
 lsl_time_dfs = {p: df.copy() for p, df in companion_device_dfs.items()}
 for path, df in lsl_time_dfs.items():
@@ -45,7 +47,7 @@ illuminance_df = pd.concat(
 )
 
 
-for time_domain in ("Pupil Invisible Companion", "Lab Streaming Layer"):
+for time_domain in (time_domain_key, "Lab Streaming Layer"):
     for eye in ("left", "right"):
         mask = (illuminance_df["time domain"] == time_domain) & (
             illuminance_df.eye == eye

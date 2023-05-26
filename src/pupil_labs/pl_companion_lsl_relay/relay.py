@@ -8,7 +8,7 @@ from pupil_labs.realtime_api.models import Component, Event, Sensor
 from pupil_labs.realtime_api.streaming import GazeData
 from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
-from pupil_labs.invisible_lsl_relay import outlets
+from pupil_labs.pl_companion_lsl_relay import outlets
 
 logger = logging.getLogger(__name__)
 logging.getLogger("pupil_labs.realtime_api.time_echo").setLevel("WARNING")
@@ -22,7 +22,8 @@ class Relay:
         device_port: int,
         device_identifier: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        model: str,
+        module_serial: str,
         time_sync_interval: int,
     ):
         receiver = DataReceiver(device_ip, device_port)
@@ -33,7 +34,8 @@ class Relay:
             receiver,
             device_identifier,
             outlet_prefix,
-            world_camera_serial,
+            model,
+            module_serial,
             time_sync_interval,
         )
         await relay.relay_receiver_to_publisher()
@@ -46,24 +48,27 @@ class Relay:
         receiver: "DataReceiver",
         device_identifier: str,
         outlet_prefix: str,
-        world_camera_serial: str,
+        model: str,
+        module_serial: str,
         time_sync_interval: int,
     ):
         self.device_ip = device_ip
         self.device_port = device_port
         self.receiver = receiver
         self.session_id = str(uuid.uuid4())
-        self.gaze_outlet = outlets.PupilInvisibleGazeOutlet(
+        self.gaze_outlet = outlets.PupilCompanionGazeOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
-            world_camera_serial=world_camera_serial,
+            model=model,
+            module_serial=module_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
         )
-        self.event_outlet = outlets.PupilInvisibleEventOutlet(
+        self.event_outlet = outlets.PupilCompanionEventOutlet(
             device_id=device_identifier,
             outlet_prefix=outlet_prefix,
-            world_camera_serial=world_camera_serial,
+            model=model,
+            module_serial=module_serial,
             session_id=self.session_id,
             clock_offset_ns=self.receiver.clock_offset_ns,
         )
@@ -199,7 +204,7 @@ class DataReceiver:
 
             if status.phone.time_echo_port is None:
                 logger.warning(
-                    "Pupil Invisible Companion app is out-of-date and does not support "
+                    "Pupil Companion app is out-of-date and does not support "
                     "accurate time sync! Relying on less accurate NTP time sync."
                 )
                 return

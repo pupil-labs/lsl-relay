@@ -9,7 +9,7 @@ class Gaze(Protocol):
     y: float
 
 
-class PiChannel:
+class CompanionChannel:
     def __init__(
         self,
         sample_query: Callable[[Any], Any],
@@ -24,21 +24,21 @@ class PiChannel:
             chan.append_child_value(entry, self.information_dict[entry])
 
 
-def pi_event_channels():
+def companion_event_channels():
     return [
-        PiChannel(
+        CompanionChannel(
             sample_query=pi_extract_from_sample("name"),
             channel_information_dict={"label": "Event", "format": "string"},
         )
     ]
 
 
-def pi_gaze_channels() -> List[PiChannel]:
-    channels: List[PiChannel] = []
+def companion_gaze_channels() -> List[CompanionChannel]:
+    channels: List[CompanionChannel] = []
     # ScreenX, ScreenY: screen coordinates of the gaze cursor
     channels.extend(
         [
-            PiChannel(
+            CompanionChannel(
                 sample_query=pi_extract_gaze_query(i),
                 channel_information_dict={
                     "label": "xy"[i],
