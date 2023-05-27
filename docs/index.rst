@@ -5,17 +5,17 @@ Pupil Labs Companion LSL Relay
 The Pupil Labs Companion LSL Relay (Relay) allows you to stream gaze and event data from your
 Pupil Labs Companion device to the `labstreaminglayer <https://github.com/sccn/labstreaminglayer>`_ (LSL).
 
-For integration between Pupil Core software and LSL, see https://github.com/labstreaminglayer/App-PupilLabs.
+For integration between Pupil Core software and LSL, see https://github.com/labstreaminglayer/App-PupilLabs instead.
 
 Install and Usage
 ==================
 Install the Pupil Labs Companion LSL Relay with pip::
 
-   pip install pl-companion-lsl-relay
+   pip install lsl-relay
 
 After you installed the relay, you can start it by executing::
 
-   pl_companion_lsl_relay
+   lsl_relay
 
 The Relay takes the following optional arguments:
 
@@ -25,14 +25,14 @@ The Relay takes the following optional arguments:
 - ``--timeout`` is used to define the maximum time (in seconds) the relay will search the network for new
   devices before returning. The default is 10 seconds.
 
-- ``--log_file_name`` defines the name and path of the log file. The default is ``pl_companion_lsl_relay.log``.
+- ``--log_file_name`` defines the name and path of the log file. The default is ``lsl_relay.log``.
 
 - ``--device_address IP:PORT`` connects directly to the specified device. Network device discovery and selection
   are skipped. The correct format to pass the device address is ``device_ip:device_port`` the ip address and
   the port of your device can be found in the companion app under Menu -> Streaming.
 
 - ``--outlet_prefix PREFIX`` sets the prefix of the outlet name displayed in lab recorder. The default prefix
-  is ``pl_companion``. Each outlet will also have a suffix, specifying the data stream type (Gaze or Event)
+  is ``pupil_labs``. Each outlet will also have a suffix, specifying the data stream type (Gaze or Event)
 
 .. caution::
    The Relay currently relies on `NTP`_ for time synchronization between the phone and

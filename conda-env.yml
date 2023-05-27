@@ -1,4 +1,4 @@
-name: pl-companion-lsl-relay-conda
+name: lsl-relay-conda
 channels:
   - conda-forge
 dependencies:

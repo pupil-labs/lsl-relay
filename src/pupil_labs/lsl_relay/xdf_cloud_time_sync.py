@@ -17,7 +17,7 @@ except ImportError as err:
     install()
     raise ImportError(
         "Some `lsl_relay_time_alignment` dependencies are missing. Install them via\n\t"
-        "\n\n\tpip install pl-companion-lsl-relay[pupil_cloud_alignment]\n"
+        "\n\n\tpip install lsl-relay[pupil_cloud_alignment]\n"
     ) from err
 
 from .cli import logger_setup

@@ -6,7 +6,7 @@ import seaborn as sns
 from rich import print
 from rich.traceback import install
 
-from pupil_labs.pl_companion_lsl_relay.linear_time_model import TimeAlignmentModels
+from pupil_labs.lsl_relay.linear_time_model import TimeAlignmentModels
 
 time_domain_key = "Pupil Companion Device"
 

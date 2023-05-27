@@ -19,7 +19,7 @@
 3.0.0 (2022-10-25)
 ##################
 - Estimate and correct clock offset between Companion device and relay
-  (:py:meth:`pupil_labs.pl_companion_lsl_relay.relay.DataReceiver.estimate_clock_offset`)
+  (:py:meth:`pupil_labs.lsl_relay.relay.DataReceiver.estimate_clock_offset`)
 - Add estimated clock offset to acquisition info
 - Add command line tool for lsl-to-cloud time alignment and vice versa
 - Change the events sent for time alignment to include a unique session id
@@ -28,8 +28,8 @@
 - Update module skeleton
 - Update pre-commit config
 - [Backwards-incompatible API change] Restructured
-  (:py:class:`pupil_labs.pl_companion_lsl_relay.relay.Relay`) two-step setup into a single
-  :py:meth:`class method call <pupil_labs.pl_companion_lsl_relay.relay.Relay.run>`
+  (:py:class:`pupil_labs.lsl_relay.relay.Relay`) two-step setup into a single
+  :py:meth:`class method call <pupil_labs.lsl_relay.relay.Relay.run>`
 
 2.1.0
 #####

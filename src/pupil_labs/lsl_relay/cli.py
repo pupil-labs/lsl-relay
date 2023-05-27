@@ -13,7 +13,7 @@ from rich.live import Live
 from rich.logging import RichHandler
 from rich.table import Table
 
-from pupil_labs.pl_companion_lsl_relay import relay
+from pupil_labs.lsl_relay import relay
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +210,7 @@ def epoch_is(year: int, month: int, day: int) -> bool:
 )
 @click.option(
     "--log_file_name",
-    default="pl_companion_lsl_relay.log",
+    default="lsl_relay.log",
     help="Name and path where the log file is saved.",
 )
 @click.option(
@@ -220,7 +220,7 @@ def epoch_is(year: int, month: int, day: int) -> bool:
 )
 @click.option(
     "--outlet_prefix",
-    default="pl_companion",
+    default="pupil_labs",
     help="Pass optional names to the lsl outlets.",
 )
 def relay_setup_and_start(
