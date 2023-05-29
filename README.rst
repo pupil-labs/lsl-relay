@@ -20,8 +20,8 @@
 .. image:: https://img.shields.io/badge/skeleton-2022-informational
    :target: https://blog.jaraco.com/skeleton
 
-*************************
+*************************************************
 Pupil Labs LSL Relay for Neon and Pupil Invisible
-*************************
+*************************************************
 
 - `Documentation <https://pupil-invisible-lsl-relay.readthedocs.io/>`_
