@@ -1,15 +1,15 @@
 *******************************
-Pupil Labs Companion LSL Relay
+Pupil Labs LSL Relay
 *******************************
 
-The Pupil Labs Companion LSL Relay (Relay) allows you to stream gaze and event data from your
-Pupil Labs Companion device to the `labstreaminglayer <https://github.com/sccn/labstreaminglayer>`_ (LSL).
+The Pupil Labs LSL Relay (Relay) allows you to stream gaze and event data from your
+Pupil Labs device to the `labstreaminglayer <https://github.com/sccn/labstreaminglayer>`_ (LSL).
 
 For integration between Pupil Core software and LSL, see https://github.com/labstreaminglayer/App-PupilLabs instead.
 
 Install and Usage
 ==================
-Install the Pupil Labs Companion LSL Relay with pip::
+Install the Pupil Labs LSL Relay with pip::
 
    pip install lsl-relay
 
