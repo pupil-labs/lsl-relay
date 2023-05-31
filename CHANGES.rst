@@ -1,7 +1,7 @@
 3.1.0 (2023-05-25)
 ##################
 - Adds official support for Neon modules
-- New project name
+- New project name pupil-labs-lsl-relay
 
 3.0.2 (2022-11-09)
 ##################
