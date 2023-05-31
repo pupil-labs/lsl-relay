@@ -24,4 +24,4 @@
 Pupil Labs LSL Relay for Neon and Pupil Invisible
 *************************************************
 
-- `Documentation <https://pupil-invisible-lsl-relay.readthedocs.io/>`_
+- `Documentation <https://pupil-labs-lsl-relay.readthedocs.io>`_
