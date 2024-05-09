@@ -5,7 +5,7 @@ from typing import Iterable, List, NoReturn, Optional
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
 from pupil_labs.realtime_api.models import Component, Event, Sensor
-from pupil_labs.realtime_api.streaming import GazeData
+from pupil_labs.realtime_api.models import GazeDataType
 from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
 from pupil_labs.lsl_relay import outlets
@@ -84,7 +84,7 @@ class Relay:
                 async for gaze in receive_gaze_data(
                     self.receiver.gaze_sensor_url, run_loop=True, log_level=30
                 ):
-                    if isinstance(gaze, GazeData):
+                    if isinstance(gaze, GazeDataType):
                         await self.gaze_sample_queue.put(
                             GazeAdapter(gaze, self.receiver.clock_offset_ns)
                         )
@@ -229,7 +229,7 @@ class DataReceiver:
 
 
 class GazeAdapter:
-    def __init__(self, sample: GazeData, clock_offset_ns: int):
+    def __init__(self, sample: GazeDataType, clock_offset_ns: int):
         self.x = sample.x
         self.y = sample.y
         self.timestamp_unix_seconds = (
