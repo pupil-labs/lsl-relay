@@ -1,3 +1,7 @@
+3.1.1 (2024-05-09)
+##################
+- Bumps real-time API to support Pupillometry & Eye state in real-time.
+
 3.1.0 (2023-05-25)
 ##################
 - Adds official support for Neon modules
