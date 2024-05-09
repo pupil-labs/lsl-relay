@@ -4,8 +4,7 @@ import uuid
 from typing import Iterable, List, NoReturn, Optional
 
 from pupil_labs.realtime_api import Device, StatusUpdateNotifier, receive_gaze_data
-from pupil_labs.realtime_api.models import Component, Event, Sensor
-from pupil_labs.realtime_api.models import GazeDataType
+from pupil_labs.realtime_api.models import Component, Event, GazeDataType, Sensor
 from pupil_labs.realtime_api.time_echo import TimeOffsetEstimator
 
 from pupil_labs.lsl_relay import outlets
