@@ -21,12 +21,10 @@ class TimeAlignmentModels:
     lsl_to_cloud: linear_model.LinearRegression
 
     @overload
-    def to_json(self, path: Union[str, Path]) -> None:
-        ...
+    def to_json(self, path: Union[str, Path]) -> None: ...
 
     @overload
-    def to_json(self, path: None) -> str:
-        ...
+    def to_json(self, path: None) -> str: ...
 
     def to_json(self, path: Union[None, str, Path] = None) -> Optional[str]:
         mapping_parameters = {
