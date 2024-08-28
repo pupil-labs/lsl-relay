@@ -3,9 +3,10 @@ Pupil Labs LSL Relay
 *******************************
 
 The Pupil Labs LSL Relay (Relay) allows you to stream gaze and event data from your
-Pupil Labs device to the `labstreaminglayer <https://github.com/sccn/labstreaminglayer>`_ (LSL).
+Pupil Invisible device to the `labstreaminglayer <https://github.com/sccn/labstreaminglayer>`_ (LSL).
 
-For integration between Pupil Core software and LSL, see https://github.com/labstreaminglayer/App-PupilLabs instead.
+* For integration between Neon and LSL, use the `Neon Companion app's built-in LSL support <https://docs.pupil-labs.com/neon/data-collection/lab-streaming-layer/>`_.
+* For integration between Pupil Core software and LSL, see https://github.com/labstreaminglayer/App-PupilLabs instead.
 
 Install and Usage
 ==================

@@ -21,7 +21,8 @@
    :target: https://blog.jaraco.com/skeleton
 
 *************************************************
-Pupil Labs LSL Relay for Neon and Pupil Invisible
+Pupil Labs LSL Relay for Pupil Invisible
 *************************************************
 
 - `Documentation <https://pupil-labs-lsl-relay.readthedocs.io>`_
+- Note: `the Neon Companion app now supports LSL by default <https://docs.pupil-labs.com/neon/data-collection/lab-streaming-layer/>`_. Using the LSL Relay with Neon is now deprecated.
